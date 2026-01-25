@@ -1,5 +1,30 @@
 FILE* target_file;
 
+bool registers[20];
+
+void initializeRegisters()
+{
+	for (int i=0;i<20;i++)
+		registers[i]=true;
+}
+
+int getFreeRegister()
+{
+	for (int i=0;i<20;i++)
+		if (registers[i]==true)
+		{
+			registers[i]=false;
+			return i;
+		}
+	printf("No free register\n");
+	exit(1);
+}
+
+void releaseRegister(int reg)
+{
+	registers[reg]=true;
+}
+
 struct tnode* makeOperatorNode(char c,struct tnode *l,struct tnode *r){
     struct tnode *temp;
     temp = (struct tnode*)malloc(sizeof(struct tnode));
@@ -13,70 +38,6 @@ struct tnode* makeOperatorNode(char c,struct tnode *l,struct tnode *r){
     temp->right = r;
     temp->type = -1;
     return temp;
-}
-
-int evaluate(struct tnode *t){
-    if(t->nodetype == Nconst)
-    {
-        return t->val;
-    }
-    else{
-        switch(t->nodetype){
-            case Nadd : return evaluate(t->left) + evaluate(t->right);
-                        break;
-            case Nsub : return evaluate(t->left) - evaluate(t->right);
-                        break;
-            case Nmul : return evaluate(t->left) * evaluate(t->right);
-                        break;
-            case Ndiv : return evaluate(t->left) / evaluate(t->right);
-                        break;
-        }
-    }
-}
-
-int regCount=-1;
-
-int getReg()
-{
-	if (regCount==19)
-	{
-		printf("Out of registers\n");
-		exit(1);
-	}
-	regCount++;
-	return regCount;
-}
-
-int freeReg()
-{
-	if (regCount<0)
-	{
-		printf("No register to free\n");
-		exit(1);
-	}
-	regCount--;
-	return regCount;
-}
-
-int codeGen(struct tnode* t)
-{
-	if (t->left==NULL && t->right==NULL)
-	{
-		int r = getReg();
-		fprintf(target_file, "MOV R%d, %d\n",r,t->val);
-		return r;
-	}
-	int r1 = codeGen(t->left);
-	int r2 = codeGen(t->right);
-	switch(t->nodetype)
-	{
-		case Nadd : fprintf(target_file, "ADD R%d, R%d\n", r1, r2); break;
-		case Nsub : fprintf(target_file, "SUB R%d, R%d\n", r1, r2); break;
-		case Nmul : fprintf(target_file, "MUL R%d, R%d\n", r1, r2); break;
-		case Ndiv : fprintf(target_file, "DIV R%d, R%d\n", r1, r2); break;
-	}
-	freeReg();
-	return r1;
 }
 
 struct tnode *makeConnectNode(tnode *l, tnode *r)
@@ -119,7 +80,7 @@ struct tnode *makeConstantNode(int n)
 struct tnode* makeAssignNode(tnode *l,tnode* r)
 {
 	tnode *temp = (struct tnode*)malloc(sizeof(struct tnode));
-        temp->val = INT_MAX;
+       temp->val = INT_MAX;
         temp->type = -1;
         temp->varname = NULL;
         temp->nodetype = Nassign;
@@ -203,3 +164,5 @@ struct tnode* createTree(int val, int type, char* c, struct tnode *l, struct tno
 	}
 	return temp;
 }
+
+

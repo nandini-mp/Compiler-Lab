@@ -73,6 +73,7 @@
 	#include <stdio.h>
 	#include <limits.h>
 	#include <string.h>
+	#include <stdbool.h>
 	#include "codegen.h"
 	#include "codegen.c"
 	int yyerror(const char*);
@@ -80,9 +81,25 @@
 	void generateExit();
 	void store(int x,int reg);
 	void write(int r);
+	void initializeRegisters();
+	int getFreeRegister();
+	void releaseRegister(int regNo);
+	int genAddInstr(int l,int r);
+	int genSubInstr(int l,int r);
+	int genMulInstr(int l,int r);
+	int genDivInstr(int l,int r);
+	void genWriteToMemInstr(int l,int r);
+	void genReadInstr(int mem);
+	void genWriteInstr(int mem);
+	int genConstInstr(int val);
+	int genAddressOfVar(tnode* root);
+	int genAssignInstr(tnode* root);
+	int genLoadVarInstr(tnode* root);
+	int codeGen(tnode* root);
+	void generate(tnode* root);
 	extern FILE *yyin;
 
-#line 86 "y.tab.c"
+#line 103 "y.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -163,11 +180,11 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 16 "codegen.y"
+#line 33 "codegen.y"
 
 	struct tnode *no;	
 
-#line 171 "y.tab.c"
+#line 188 "y.tab.c"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -598,8 +615,8 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    28,    28,    29,    32,    33,    36,    37,    38,    41,
-      43,    45,    48,    49,    50,    51,    52,    53,    54
+       0,    45,    45,    46,    49,    50,    53,    54,    55,    58,
+      60,    62,    65,    66,    67,    68,    69,    70,    71
 };
 #endif
 
@@ -1180,109 +1197,109 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* program: BEGINN Slist ENDD SEMICOLON  */
-#line 28 "codegen.y"
-                                      { print((yyvsp[-2].no)); exit(0);}
-#line 1186 "y.tab.c"
+#line 45 "codegen.y"
+                                      { generate((yyvsp[-2].no)); exit(0);}
+#line 1203 "y.tab.c"
     break;
 
   case 3: /* program: BEGINN ENDD SEMICOLON  */
-#line 29 "codegen.y"
+#line 46 "codegen.y"
                                 {(yyval.no)=NULL;}
-#line 1192 "y.tab.c"
+#line 1209 "y.tab.c"
     break;
 
   case 4: /* Slist: Slist Stmt  */
-#line 32 "codegen.y"
+#line 49 "codegen.y"
                    {(yyval.no) = makeConnectNode((yyvsp[-1].no),(yyvsp[0].no));}
-#line 1198 "y.tab.c"
+#line 1215 "y.tab.c"
     break;
 
   case 5: /* Slist: Stmt  */
-#line 33 "codegen.y"
+#line 50 "codegen.y"
              {(yyval.no) = (yyvsp[0].no);}
-#line 1204 "y.tab.c"
+#line 1221 "y.tab.c"
     break;
 
   case 6: /* Stmt: InputStmt  */
-#line 36 "codegen.y"
+#line 53 "codegen.y"
                  {(yyval.no) = (yyvsp[0].no);}
-#line 1210 "y.tab.c"
+#line 1227 "y.tab.c"
     break;
 
   case 7: /* Stmt: OutputStmt  */
-#line 37 "codegen.y"
+#line 54 "codegen.y"
                      {(yyval.no) = (yyvsp[0].no);}
-#line 1216 "y.tab.c"
+#line 1233 "y.tab.c"
     break;
 
   case 8: /* Stmt: AsgStmt  */
-#line 38 "codegen.y"
+#line 55 "codegen.y"
                   {(yyval.no) = (yyvsp[0].no);}
-#line 1222 "y.tab.c"
+#line 1239 "y.tab.c"
     break;
 
   case 9: /* InputStmt: READ '(' ID ')' SEMICOLON  */
-#line 41 "codegen.y"
+#line 58 "codegen.y"
                                    {(yyval.no) = makeReadNode((yyvsp[-2].no));}
-#line 1228 "y.tab.c"
+#line 1245 "y.tab.c"
     break;
 
   case 10: /* OutputStmt: WRITE '(' expr ')' SEMICOLON  */
-#line 43 "codegen.y"
+#line 60 "codegen.y"
                                        {(yyval.no) = makeWriteNode((yyvsp[-2].no));}
-#line 1234 "y.tab.c"
+#line 1251 "y.tab.c"
     break;
 
   case 11: /* AsgStmt: ID ASSIGN expr SEMICOLON  */
-#line 45 "codegen.y"
+#line 62 "codegen.y"
                                    {(yyval.no) = makeAssignNode((yyvsp[-3].no),(yyvsp[-1].no));}
-#line 1240 "y.tab.c"
+#line 1257 "y.tab.c"
     break;
 
   case 12: /* expr: expr PLUS expr  */
-#line 48 "codegen.y"
+#line 65 "codegen.y"
                                 {(yyval.no) = makeOperatorNode('+',(yyvsp[-2].no),(yyvsp[0].no));}
-#line 1246 "y.tab.c"
+#line 1263 "y.tab.c"
     break;
 
   case 13: /* expr: expr MINUS expr  */
-#line 49 "codegen.y"
+#line 66 "codegen.y"
                                 {(yyval.no) = makeOperatorNode('-',(yyvsp[-2].no),(yyvsp[0].no));}
-#line 1252 "y.tab.c"
+#line 1269 "y.tab.c"
     break;
 
   case 14: /* expr: expr MUL expr  */
-#line 50 "codegen.y"
+#line 67 "codegen.y"
                                 {(yyval.no) = makeOperatorNode('*',(yyvsp[-2].no),(yyvsp[0].no));}
-#line 1258 "y.tab.c"
+#line 1275 "y.tab.c"
     break;
 
   case 15: /* expr: expr DIV expr  */
-#line 51 "codegen.y"
+#line 68 "codegen.y"
                                 {(yyval.no) = makeOperatorNode('/',(yyvsp[-2].no),(yyvsp[0].no));}
-#line 1264 "y.tab.c"
+#line 1281 "y.tab.c"
     break;
 
   case 16: /* expr: '(' expr ')'  */
-#line 52 "codegen.y"
+#line 69 "codegen.y"
                                 {(yyval.no) = (yyvsp[-1].no);}
-#line 1270 "y.tab.c"
+#line 1287 "y.tab.c"
     break;
 
   case 17: /* expr: NUM  */
-#line 53 "codegen.y"
+#line 70 "codegen.y"
                                 {(yyval.no) = (yyvsp[0].no);}
-#line 1276 "y.tab.c"
+#line 1293 "y.tab.c"
     break;
 
   case 18: /* expr: ID  */
-#line 54 "codegen.y"
+#line 71 "codegen.y"
                                 {(yyval.no) = (yyvsp[0].no);}
-#line 1282 "y.tab.c"
+#line 1299 "y.tab.c"
     break;
 
 
-#line 1286 "y.tab.c"
+#line 1303 "y.tab.c"
 
       default: break;
     }
@@ -1475,7 +1492,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 57 "codegen.y"
+#line 74 "codegen.y"
 
 
 int yyerror(char const *s)
@@ -1486,7 +1503,7 @@ int yyerror(char const *s)
 
 void generateExit()
 {
-	int r1=getReg();
+	int r1=getFreeRegister();
 	fprintf(target_file,"MOV R%d,\"%s\"\n",r1,"Exit");
 	fprintf(target_file,"PUSH R%d\n",r1);
         fprintf(target_file,"PUSH R%d\n",r1);
@@ -1499,7 +1516,7 @@ void generateExit()
         fprintf(target_file,"POP R%d\n",r1);
         fprintf(target_file,"POP R%d\n",r1);
         fprintf(target_file,"POP R%d\n",r1);
-	freeReg();
+	releaseRegister(r1);
 }
 
 void store(int x,int reg)
@@ -1510,7 +1527,7 @@ void store(int x,int reg)
 
 void write(int loc)
 {
-	int r1=getReg();
+	int r1=getFreeRegister();
 	fprintf(target_file,"MOV R%d,\"%s\"\n",r1,"Write");
         fprintf(target_file,"PUSH R%d\n",r1);
 	fprintf(target_file,"MOV R%d, %d\n",r1,-2);
@@ -1525,20 +1542,180 @@ void write(int loc)
         fprintf(target_file,"POP R%d\n",r1);
         fprintf(target_file,"POP R%d\n",r1);
         fprintf(target_file,"POP R%d\n",r1);
-        freeReg();
+        releaseRegister(r1);
+}
+
+int genAddInstr(int l,int r)
+{
+	fprintf(target_file,"ADD R%d, R%d\n",l,r);
+	releaseRegister(r);
+	return l;
+}
+
+int genSubInstr(int l,int r)
+{
+        fprintf(target_file,"SUB R%d, R%d\n",l,r);
+        releaseRegister(r);
+        return l;
+}
+
+int genMulInstr(int l,int r)
+{
+        fprintf(target_file,"MUL R%d, R%d\n",l,r);
+        releaseRegister(r);
+        return l;
+}
+
+int genDivInstr(int l,int r)
+{
+        fprintf(target_file,"DIV R%d, R%d\n",l,r);
+        releaseRegister(r);
+        return l;
+}
+
+void genWriteToMem(int r,int mem)
+{
+	fprintf(target_file,"MOV [%d],R%d\n",mem,r);
+}
+
+void genReadInstr(int mem)
+{
+	int a = getFreeRegister();
+        int b = getFreeRegister();
+        int c = getFreeRegister();
+	fprintf(target_file,"MOV R%d, \"%s\"\n",a,"Read");
+	fprintf(target_file,"PUSH R%d\n",a);
+	fprintf(target_file,"MOV R%d, %d\n",b,-1);
+	fprintf(target_file,"PUSH R%d\n",b);
+	fprintf(target_file,"MOV R%d, %d\n",c,mem);
+	fprintf(target_file,"PUSH R%d\n",c);
+	fprintf(target_file,"PUSH R%d\n",c);
+	fprintf(target_file,"PUSH R%d\n",c);
+	fprintf(target_file,"CALL 0\n");
+	fprintf(target_file,"SUB SP,5\n");
+	releaseRegister(a);
+	releaseRegister(b);
+	releaseRegister(c);
+}
+
+void genWriteInstr(int mem)
+{
+        int a = getFreeRegister();
+        int b = getFreeRegister();
+        int c = getFreeRegister();
+        fprintf(target_file,"MOV R%d, \"%s\"\n",a,"Write");
+        fprintf(target_file,"PUSH R%d\n",a);
+        fprintf(target_file,"MOV R%d, %d\n",b,-2);
+        fprintf(target_file,"PUSH R%d\n",b);
+        fprintf(target_file,"PUSH R%d\n",mem);
+        fprintf(target_file,"PUSH R%d\n",c);
+        fprintf(target_file,"PUSH R%d\n",c);
+        fprintf(target_file,"CALL 0\n");
+        fprintf(target_file,"SUB SP,5\n");
+        releaseRegister(a);
+        releaseRegister(b);
+        releaseRegister(c);
+}
+
+
+int genConstInstr(int val)
+{
+	int reg = getFreeRegister();
+	fprintf(target_file,"MOV R%d,%d\n",reg,val);
+	return reg;
+}
+
+int genAddressOfVar(tnode* t)
+{
+        int offset = (int)t->varname[0]-'a';
+        return 4096+offset;
+}
+
+int genAssignInstr(tnode *t)
+{
+	int mem = genAddressOfVar(t->left);
+	int evalExprReg = codeGen(t->right);
+	fprintf(target_file,"MOV [%d],R%d\n",mem,evalExprReg);
+	return -1;
+}
+
+int genLoadVarInstr(tnode* root){
+    int x = genAddressOfVar(root);
+    int y = getFreeRegister();
+    fprintf(target_file,"MOV R%d, [%d]\n",y,x);
+    return y;
+}
+
+int codeGen(tnode* root)
+{
+	if (!root) return -1;
+	switch (root->nodetype)
+	{
+		case Nadd :
+		{
+			int l = codeGen(root->left);
+			int r = codeGen(root->right);
+			return genAddInstr(l,r);
+		}
+		case Nsub :
+                {
+                        int l = codeGen(root->left);
+                        int r = codeGen(root->right);
+                        return genSubInstr(l,r);
+                }
+		case Nmul :
+                {
+                        int l = codeGen(root->left);
+                        int r = codeGen(root->right);
+                        return genMulInstr(l,r);
+                }
+		case Ndiv :
+                {
+                        int l = codeGen(root->left);
+                        int r = codeGen(root->right);
+                        return genDivInstr(l,r);
+                }
+		case Nassign : return genAssignInstr(root);
+		case Nconnect :
+		{
+			codeGen(root->left);
+			codeGen(root->right);
+			return -1;
+		}
+		case Nvar : return genLoadVarInstr(root);
+		case Nconst : return genConstInstr(root->val);
+		case Nread :
+		{
+			int x = genAddressOfVar(root->left);
+			genReadInstr(x);
+			return -1;
+		}
+		case Nwrite :
+		{
+			int x = codeGen(root->left);
+			genWriteInstr(x);
+			return -1;
+		}
+	}
+}
+
+void generate(tnode* root)
+{
+	target_file = fopen("out.xsm","w");
+	initializeRegisters();
+	fprintf(target_file, "0\n2056\n0\n0\n0\n0\n0\n0\n");
+        fprintf(target_file, "BRKP\n");
+        fprintf(target_file, "MOV SP, %d\n",4096);
+	codeGen(root);
+	generateExit();
 }
 
 
 int main(void)
 {
-	target_file = fopen("out.xsm","w");
-	fprintf(target_file, "0\n2056\n0\n0\n0\n0\n0\n0\n");
-	fprintf(target_file, "BRKP\n");
-	fprintf(target_file, "MOV SP, %d\n",4096);
 	FILE *inputFile = fopen("input.txt","r");
 	yyin = inputFile;
 	yyparse();
 	fclose(target_file);
 	return 0;
 }
-

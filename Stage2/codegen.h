@@ -1,3 +1,6 @@
+#ifndef CODEGEN_H
+#define CODEGEN_H
+
 typedef struct tnode{
         int val;
 	int type;
@@ -5,6 +8,8 @@ typedef struct tnode{
 	int nodetype;
 	struct tnode *left,*right;
 } tnode;
+
+extern FILE* target_file;
 
 enum nodeTypes {
 	Nadd, Nsub, Nmul, Ndiv, Nassign, Nconnect, Nvar, Nconst, Nread, Nwrite
@@ -37,3 +42,5 @@ struct tnode* makeWriteNode(tnode* t);
 void print(tnode* root);
 
 struct tnode* createTree(int val, int type, char* c, struct tnode *l, struct tnode *r);
+
+#endif

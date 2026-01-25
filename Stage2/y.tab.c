@@ -75,7 +75,7 @@
 	#include <string.h>
 	#include <stdbool.h>
 	#include "codegen.h"
-	#include "codegen.c"
+	#include "evaluate.h"
 	int yyerror(const char*);
 	int yylex(void);
 	void generateExit();
@@ -1198,7 +1198,7 @@ yyreduce:
     {
   case 2: /* program: BEGINN Slist ENDD SEMICOLON  */
 #line 45 "codegen.y"
-                                      { generate((yyvsp[-2].no)); exit(0);}
+                                      { generate((yyvsp[-2].no)); evaluateAndPrint((yyvsp[-2].no)); exit(0);}
 #line 1203 "y.tab.c"
     break;
 

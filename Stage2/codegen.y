@@ -5,7 +5,7 @@
 	#include <string.h>
 	#include <stdbool.h>
 	#include "codegen.h"
-	#include "codegen.c"
+	#include "evaluate.h"
 	int yyerror(const char*);
 	int yylex(void);
 	void generateExit();
@@ -42,7 +42,7 @@
 
 %%
 
-program : BEGINN Slist ENDD SEMICOLON { generate($2); exit(0);}
+program : BEGINN Slist ENDD SEMICOLON { generate($2); evaluateAndPrint($2); exit(0);}
 	| BEGINN ENDD SEMICOLON {$$=NULL;}
 		;
 

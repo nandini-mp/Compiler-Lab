@@ -130,10 +130,7 @@ int evaluate(tnode* root)
 				evaluate(root->right);
 			return -1;
 		}
-
-
 	}
-
 }
 
 void evaluateAndPrint(tnode* root)

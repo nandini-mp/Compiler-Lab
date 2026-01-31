@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include "control.h"
 #include "label/label.h"
+#include "symbolTable/symbolTable.h"
 
 FILE* target_file;
 
@@ -248,9 +249,9 @@ struct tnode *makeConstantNode(int n)
 
 struct tnode* makeAssignNode(tnode *l,tnode* r)
 {
-	if (r->type!=0)
+	if (r->type!=0 && r->type!=2)
 	{
-		printf("Right side of assignment not INT\n");
+		printf("Right side of assignment not INT/STR\n");
 		exit(1);
 	}
 	tnode *temp = (struct tnode*)malloc(sizeof(struct tnode));
@@ -523,8 +524,11 @@ int genConstInstr(int val)
 
 int genAddressOfVar(tnode* t)
 {
-	int offset = (int)t->varname[0]-'a';
-	return 4096+offset;
+	if (t == NULL || t->symbolTableEntry == NULL) {
+        printf("Error: Variable %s used before declaration or entry missing.\n", t->varname ? t->varname : "unknown");
+        exit(1);
+    }
+	return t->symbolTableEntry->binding;
 }
 
 int genAssignInstr(tnode *t)
@@ -564,7 +568,7 @@ int genConditionCode(tnode* root, int falseLabel)
 	}
 	fprintf(target_file,"JZ R%d, L%d\n",left,falseLabel);
 	releaseRegister(right);
-	return left;
+	releaseRegister(left);
 }
 
 void genIfElseCode(tnode* root)
@@ -807,4 +811,50 @@ void genDoWhileCode(tnode *node)
     fprintf(target_file, "L%d:\n", restLabel);
     releaseRegister(x);
     popStack();
+}
+
+struct tnode* makeStringNode(char* str)
+{
+	tnode *temp = (struct tnode*)malloc(sizeof(struct tnode));
+	temp->strVal = strdup(str);
+	temp->type = 2;
+	temp->varname = NULL;
+	temp->nodetype = Nstr;
+	temp->left = NULL;
+	temp->right = NULL;
+	return temp;
+}
+
+struct tnode* makeDeclNode(tnode* type, tnode* vars)
+{
+	tnode *temp = makeConnectNode(type,vars);
+	temp->val = INT_MAX;
+	temp->type = -1;
+	temp->varname = NULL;
+	temp->nodetype = Ndecl;
+	return temp;
+}
+
+struct tnode* makeTypeNode(int type)
+{
+	tnode *temp = (struct tnode*)malloc(sizeof(struct tnode));
+	temp->val = INT_MAX;
+	temp->type = type;
+	temp->varname = NULL;
+	temp->nodetype = Ntype;
+	temp->left = NULL;
+	temp->right = NULL;
+	return temp;
+}
+
+struct tnode* makeVariableUseNode(char* name) {
+    struct Gsymbol* symbol = Lookup(name);
+    if (symbol == NULL) {
+        printf("Error: Variable %s undeclared\n", name);
+        exit(1);
+    }
+    struct tnode* temp = makeVariableNode(name);
+    temp->symbolTableEntry = symbol;
+    temp->type = symbol->type;
+    return temp;
 }

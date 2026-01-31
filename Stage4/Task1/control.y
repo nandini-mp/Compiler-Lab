@@ -5,6 +5,7 @@
 	#include <string.h>
 	#include <stdbool.h>
 	#include "control.h"
+	#include "symbolTable/symbolTable.h"
 	int yyerror(const char*);
 	int yylex(void);
 	extern FILE *yyin;
@@ -14,25 +15,47 @@
 	struct tnode *no;	
 }
 
-%type <no> expr program Slist Stmt InputStmt OutputStmt AsgStmt IfStmt WhileStmt DoWhileStmt RepeatStmt
-%token <no> ID NUM
-%token PLUS MINUS MUL DIV BEGINN ENDD READ WRITE ASSIGN SEMICOLON LT GT LE GE NE EQ IF THEN ELSE ENDIF WHILE DO ENDWHILE BREAKK CONTINUEE REPEATT UNTILL
+%type <no> expr program Slist Stmt InputStmt OutputStmt AsgStmt IfStmt WhileStmt DeclList Varlist Declarations Decl Type RepeatStmt DoWhileStmt
+%token <no> ID NUM STRINGG
+%token PLUS MINUS MUL DIV BEGINN ENDD READ WRITE ASSIGN SEMICOLON
+%token LT GT LE GE NE EQ
+%token IF THEN ELSE ENDIF WHILE DO ENDWHILE BREAKK CONTINUEE REPEATT UNTILL
+%token DECL ENDDECL COMMA INT STR
 %left PLUS MINUS
 %left MUL DIV
 %nonassoc LT GT LE GE NE EQ
 
 %%
 
-program : BEGINN Slist ENDD SEMICOLON { generate($2); exit(0);}
-	| BEGINN ENDD SEMICOLON {$$=NULL;}
-		;
+program : Declarations BEGINN Slist ENDD SEMICOLON { $$ = makeConnectNode($1,$3); generate($3); printSymbolTable(); exit(0);}
+	| Declarations BEGINN ENDD SEMICOLON {printSymbolTable(); $$=NULL;}
+	;
+
+Declarations : DECL DeclList ENDDECL {$$ = $2; parseDecl($2);}
+	| DECL ENDDECL {$$ = NULL;}
+	;
+
+DeclList : DeclList Decl { $$ = makeConnectNode($1,$2); }
+	| Decl { $$ = $1; }
+	;
+
+Decl : Type Varlist SEMICOLON { $$ = makeDeclNode($1, $2); }
+	;
+
+Type : INT {$$ = makeTypeNode(0); }
+	|  STR {$$ = makeTypeNode(2); }
+	;
+
+Varlist : Varlist COMMA ID { $$ = makeConnectNode($1, $3); }
+	| ID { $$ = $1; }
+	;
 
 Slist : Slist Stmt {$$ = makeConnectNode($1,$2);}
       | Stmt {$$ = $1;}
 	;
 
 Stmt : InputStmt {$$ = $1;}
-     	| OutputStmt {$$ = $1;}
+    | OutputStmt {$$ = $1;}
 	| AsgStmt {$$ = $1;}
 	| IfStmt {$$ = $1;}
 	| WhileStmt {$$ = $1;}
@@ -42,13 +65,13 @@ Stmt : InputStmt {$$ = $1;}
 	| RepeatStmt {$$ = $1;}
 	;
 
-InputStmt : READ'('ID')' SEMICOLON {$$ = makeReadNode($3);}
+InputStmt : READ'('ID')' SEMICOLON { $$ = makeReadNode(makeVariableUseNode($3->varname)); }
 	;
 
 OutputStmt : WRITE'('expr')' SEMICOLON {$$ = makeWriteNode($3);}
 	;
 
-AsgStmt : ID ASSIGN expr SEMICOLON {$$ = makeAssignNode($1,$3);}
+AsgStmt : ID ASSIGN expr SEMICOLON { $$ = makeAssignNode(makeVariableUseNode($1->varname), $3); }
 	;
 
 IfStmt : IF '('expr')' THEN Slist ELSE Slist ENDIF SEMICOLON {$$ = makeIfElseNode($3,$6,$8);}
@@ -56,7 +79,7 @@ IfStmt : IF '('expr')' THEN Slist ELSE Slist ENDIF SEMICOLON {$$ = makeIfElseNod
 	;
 
 WhileStmt : WHILE '('expr')' DO Slist ENDWHILE SEMICOLON {$$ = makeWhileNode($3,$6);}
-	;
+	  ;
 
 RepeatStmt:	REPEATT Slist UNTILL '(' expr ')' SEMICOLON {$$=makeRepeatNode($2,$5);}
 	;
@@ -70,7 +93,8 @@ expr : expr PLUS expr		{$$ = makeOperatorNode('+',$1,$3);}
 	 | expr DIV expr		{$$ = makeOperatorNode('/',$1,$3);}
 	 | '(' expr ')'			{$$ = $2;}
 	 | NUM					{$$ = $1;}
-	 | ID					{$$ = $1;} 
+	 | ID					{$$ = makeVariableUseNode($1->varname);}
+	 | STRINGG				{$$ = $1;} 
 	 | expr LT expr			{$$ = makeCOperatorNode('<',$1,$3);}
      | expr GT expr         {$$ = makeCOperatorNode('>',$1,$3);}
      | expr LE expr         {$$ = makeCOperatorNode('L',$1,$3);}

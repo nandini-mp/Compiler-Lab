@@ -1,0 +1,22 @@
+decl
+    int a, b, arr1[5], arr2[2][3];
+    str s;
+enddecl
+
+begin
+    read(a);
+    read(b);
+    read(arr1[2]);
+    read(arr2[1][2]);
+    
+    arr1[2] = a + b;
+    arr2[1][2] = arr1[2] * 2;
+
+    Write(a);
+    Write(b);
+    Write(arr1[2]);
+    Write(arr2[1][2]);
+    
+    s = "Hello";
+    Write(s);
+end;

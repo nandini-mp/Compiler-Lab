@@ -12,11 +12,13 @@
 %}
 
 %union{
-	struct tnode *no;	
+	struct tnode *no;
+	char* str;
 }
 
 %type <no> expr program Slist Stmt InputStmt OutputStmt AsgStmt IfStmt WhileStmt DeclList Varlist Declarations Decl Type RepeatStmt DoWhileStmt
-%token <no> ID NUM STRINGG
+%token <no> NUM STRINGG
+%token <str> ID
 %token PLUS MINUS MUL DIV BEGINN ENDD READ WRITE ASSIGN SEMICOLON
 %token LT GT LE GE NE EQ
 %token IF THEN ELSE ENDIF WHILE DO ENDWHILE BREAKK CONTINUEE REPEATT UNTILL
@@ -46,10 +48,10 @@ Type : INT {$$ = makeTypeNode(0); }
 	|  STR {$$ = makeTypeNode(2); }
 	;
 
-Varlist : Varlist COMMA ID { $$ = makeConnectNode($1, $3); }
-	| Varlist COMMA ID'['NUM']' { $$ = makeArrayNode($1,$3,$5); }
-	| ID'['NUM']' { $$ = makeArrayNode($1,$3,$5); }
-	| ID { $$ = $1; }
+Varlist : Varlist COMMA ID { $$ = makeConnectNode($1, makeVariableNode($3)); }
+	| Varlist COMMA ID'['NUM']' { $$ = makeArrayNode($1,makeVariableNode($3),$5->val); }
+	| ID'['NUM']' { $$ = makeArrayNode(NULL,makeVariableNode($1),$3->val); }
+	| ID { $$ = makeVariableNode($1); }
 	;
 
 Slist : Slist Stmt {$$ = makeConnectNode($1,$2);}
@@ -67,13 +69,15 @@ Stmt : InputStmt {$$ = $1;}
 	| RepeatStmt {$$ = $1;}
 	;
 
-InputStmt : READ'('ID')' SEMICOLON { $$ = makeReadNode(makeVariableUseNode($3->varname)); }
+InputStmt : READ'('ID')' SEMICOLON { $$ = makeReadNode(makeVariableUseNode($3)); }
+	| READ'('ID'['expr']'')' SEMICOLON { $$ = makeReadNode(makeArrayAccessNode(makeVariableUseNode($3),$5)); }
 	;
 
 OutputStmt : WRITE'('expr')' SEMICOLON {$$ = makeWriteNode($3);}
 	;
 
-AsgStmt : ID ASSIGN expr SEMICOLON { $$ = makeAssignNode(makeVariableUseNode($1->varname), $3); }
+AsgStmt : ID ASSIGN expr SEMICOLON { $$ = makeAssignNode(makeVariableUseNode($1), $3); }
+	| ID '['expr']' ASSIGN expr SEMICOLON { $$ = makeAssignNode(makeArrayAccessNode(makeVariableUseNode($1), $3), $6); }
 	;
 
 IfStmt : IF '('expr')' THEN Slist ELSE Slist ENDIF SEMICOLON {$$ = makeIfElseNode($3,$6,$8);}
@@ -95,7 +99,7 @@ expr : expr PLUS expr		{$$ = makeOperatorNode('+',$1,$3);}
 	 | expr DIV expr		{$$ = makeOperatorNode('/',$1,$3);}
 	 | '(' expr ')'			{$$ = $2;}
 	 | NUM					{$$ = $1;}
-	 | ID					{$$ = makeVariableUseNode($1->varname);}
+	 | ID					{$$ = makeVariableUseNode($1);}
 	 | STRINGG				{$$ = $1;} 
 	 | expr LT expr			{$$ = makeCOperatorNode('<',$1,$3);}
      | expr GT expr         {$$ = makeCOperatorNode('>',$1,$3);}
@@ -103,6 +107,7 @@ expr : expr PLUS expr		{$$ = makeOperatorNode('+',$1,$3);}
      | expr GE expr         {$$ = makeCOperatorNode('G',$1,$3);}
      | expr NE expr         {$$ = makeCOperatorNode('N',$1,$3);}
      | expr EQ expr         {$$ = makeCOperatorNode('E',$1,$3);}
+	 | ID'['expr']' 		{$$ = makeArrayAccessNode(makeVariableUseNode($1), $3);}
 	;
 
 %%

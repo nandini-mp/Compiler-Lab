@@ -1,0 +1,9 @@
+decl
+    int a[10], b;
+enddecl
+begin
+    read(b);
+    read(a[b]);
+    a[b+1] = a[b] + 5;
+    Write(a[b+1]);
+end;

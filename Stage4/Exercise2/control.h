@@ -20,7 +20,7 @@ typedef struct tnode
 } tnode;
 
 enum nodeTypes {
-	Nadd, Nsub, Nmul, Ndiv, Nassign, Nconnect, Nvar, Nconst, Nread, Nwrite, Nif, Nifelse, Ngt, Nlt, Nge, Nle, Nne, Neq, Nwhile, Nbreak, Ncontinue, Nrepeat, Ndowhile, Ndecl, Ntype, Nstr, Narr, Narraccess, Naddr, Nderef
+	Nadd, Nsub, Nmul, Ndiv, Nassign, Nconnect, Nvar, Nconst, Nread, Nwrite, Nif, Nifelse, Ngt, Nlt, Nge, Nle, Nne, Neq, Nwhile, Nbreak, Ncontinue, Nrepeat, Ndowhile, Ndecl, Ntype, Nstr, Narr, Narraccess, Naddr, Nderef, Nmod
 };
 
 int getVariableIndex(tnode* root);

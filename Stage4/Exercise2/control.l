@@ -26,7 +26,7 @@
 "begin" {return BEGINN;}
 "end"	{return ENDD;}
 "read"	{return READ;}
-"Write"	{return WRITE;}
+"write"	{return WRITE;}
 "if"	{return IF;}
 "then"	{return THEN;}
 "else"	{return ELSE;}
@@ -44,6 +44,7 @@
 "str"  {return STR;}
 ","     {return COMMA;}
 "&"     {return AMPERSAND;}
+"%"     {return MOD;}
 
 [a-zA-Z_][a-zA-Z0-9_]* {yylval.str = strdup(yytext); return ID;}
 [ \t]   {}

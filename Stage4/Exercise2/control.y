@@ -23,12 +23,12 @@
 %token LT GT LE GE NE EQ
 %token IF THEN ELSE ENDIF WHILE DO ENDWHILE BREAKK CONTINUEE REPEATT UNTILL
 %token DECL ENDDECL COMMA INT STR
-%token AMPERSAND
+%token AMPERSAND MOD
 %left PLUS MINUS
-%left MUL DIV
-%nonassoc UNARY
-%right AMPERSAND
+%left MUL DIV MOD
 %nonassoc LT GT LE GE NE EQ
+%right AMPERSAND
+%nonassoc UNARY
 
 %%
 
@@ -108,6 +108,7 @@ expr : expr PLUS expr			{$$ = makeOperatorNode('+',$1,$3);}
 	 | expr MINUS expr  		{$$ = makeOperatorNode('-',$1,$3);}
 	 | expr MUL expr			{$$ = makeOperatorNode('*',$1,$3);}
 	 | expr DIV expr			{$$ = makeOperatorNode('/',$1,$3);}
+	 | expr MOD expr			{$$ = makeOperatorNode('%',$1,$3);}
 	 | '(' expr ')'				{$$ = $2;}
 	 | NUM						{$$ = $1;}
 	 | ID						{$$ = makeVariableUseNode($1);}

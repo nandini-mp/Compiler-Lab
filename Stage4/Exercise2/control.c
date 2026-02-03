@@ -167,27 +167,31 @@ void evaluateAndPrint(tnode* root)
 	evaluate(root);
 }
 
-struct tnode* makeOperatorNode(char c,struct tnode *l,struct tnode *r)
+struct tnode* makeOperatorNode(char c, struct tnode *l, struct tnode *r)
 {
-	if (l->type!=0 || r->type!=0)
-	{
-		printf("Operand type not INT\n");
-		exit(1);
-	}	
-	struct tnode *temp;
-	temp = (struct tnode*)malloc(sizeof(struct tnode));
-	temp->val = INT_MAX;
-	if (c=='+') temp->nodetype = Nadd;
-	else if (c=='-') temp->nodetype = Nsub;
-	else if (c=='*') temp->nodetype = Nmul;
-	else temp->nodetype = Ndiv;
-	temp->varname = NULL;
-	temp->left = l;
-	temp->right = r;
-	temp->type = 0;
-	return temp;
-}
+    int leftType = l->type;
+    int rightType = r->type;
+    if (l->symbolTableEntry) leftType = l->symbolTableEntry->type;
+    if (r->symbolTableEntry) rightType = r->symbolTableEntry->type;
+    if (leftType != 0 || rightType != 0)
+    {
+        printf("Semantic Error: Operator %c requires INT operands. Got Left:%d, Right:%d\n", c, leftType, rightType);
+        exit(1);
+    }
+    struct tnode *temp = (struct tnode*)malloc(sizeof(struct tnode));
+    temp->val = INT_MAX;
+    if (c=='+') temp->nodetype = Nadd;
+    else if (c=='-') temp->nodetype = Nsub;
+    else if (c=='*') temp->nodetype = Nmul;
+    else if (c=='/') temp->nodetype = Ndiv;
+    else if (c=='%') temp->nodetype = Nmod;
 
+    temp->left = l;
+    temp->right = r;
+    temp->type = 0;
+    temp->varname = NULL;
+    return temp;
+}
 struct tnode* makeCOperatorNode(char c,struct tnode *l,struct tnode *r)
 {
 	if (l->type!=0 || r->type!=0)
@@ -686,6 +690,19 @@ int codeGen(tnode* root)
 			int l = codeGen(root->left);
 			int r = codeGen(root->right);
 			return genDivInstr(l,r);
+		}
+		case Nmod :
+		{
+			int r1 = codeGen(root->left);
+			int r2 = codeGen(root->right);
+			int r3 = getFreeRegister();
+			fprintf(target_file, "MOV R%d, R%d\n", r3, r1); 
+			fprintf(target_file, "DIV R%d, R%d\n", r1, r2);
+			fprintf(target_file, "MUL R%d, R%d\n", r1, r2);
+			fprintf(target_file, "SUB R%d, R%d\n", r3, r1);
+			releaseRegister(r1);
+			releaseRegister(r2);
+			return r3;
 		}
 		case Nassign : return genAssignInstr(root);
 		case Nconnect :

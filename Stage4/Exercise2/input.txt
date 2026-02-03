@@ -5,5 +5,5 @@ enddecl
 begin
     p = &x;
     *p = 10;
-    Write(x);
+    write(x);
 end;

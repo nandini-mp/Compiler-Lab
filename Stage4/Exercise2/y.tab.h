@@ -90,7 +90,8 @@ extern int yydebug;
     INT = 291,                     /* INT  */
     STR = 292,                     /* STR  */
     AMPERSAND = 293,               /* AMPERSAND  */
-    UNARY = 294                    /* UNARY  */
+    MOD = 294,                     /* MOD  */
+    UNARY = 295                    /* UNARY  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -135,7 +136,8 @@ extern int yydebug;
 #define INT 291
 #define STR 292
 #define AMPERSAND 293
-#define UNARY 294
+#define MOD 294
+#define UNARY 295
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -146,7 +148,7 @@ union YYSTYPE
 	struct tnode *no;
 	char* str;
 
-#line 150 "y.tab.h"
+#line 152 "y.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

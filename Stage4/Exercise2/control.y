@@ -16,16 +16,18 @@
 	char* str;
 }
 
-%type <no> expr program Slist Stmt InputStmt OutputStmt AsgStmt IfStmt WhileStmt DeclList Varlist Declarations Decl Type RepeatStmt DoWhileStmt
+%type <no> expr program Slist Stmt InputStmt OutputStmt AsgStmt IfStmt WhileStmt DeclList Varlist Declarations Decl Type RepeatStmt DoWhileStmt DeclID
 %token <no> NUM STRINGG
 %token <str> ID
 %token PLUS MINUS MUL DIV BEGINN ENDD READ WRITE ASSIGN SEMICOLON
 %token LT GT LE GE NE EQ
 %token IF THEN ELSE ENDIF WHILE DO ENDWHILE BREAKK CONTINUEE REPEATT UNTILL
 %token DECL ENDDECL COMMA INT STR
-%token AMPERSAND STAR
+%token AMPERSAND
 %left PLUS MINUS
 %left MUL DIV
+%nonassoc UNARY
+%right AMPERSAND
 %nonassoc LT GT LE GE NE EQ
 
 %%
@@ -45,16 +47,19 @@ DeclList : DeclList Decl { $$ = makeConnectNode($1,$2); }
 Decl : Type Varlist SEMICOLON { $$ = makeDeclNode($1, $2); }
 	;
 
+DeclID : ID { $$ = makeVariableNode($1); $$->isPointer = 0; }
+	| MUL ID { $$ = makeVariableNode($2); $$->isPointer = 1; }
+
 Type : INT {$$ = makeTypeNode(0); }
 	|  STR {$$ = makeTypeNode(2); }
 	;
 
-Varlist : Varlist COMMA ID { $$ = makeConnectNode($1, makeVariableNode($3)); }
-	| Varlist COMMA ID'['NUM']' { $$ = makeArrayNode($1,makeVariableNode($3),$5); }
-	| ID'['NUM']' { $$ = makeArrayNode(NULL,makeVariableNode($1),$3); }
-	| Varlist COMMA ID'['NUM']''['NUM']' { $$ = makeArrayNode($1,makeVariableNode($3),makeConnectNode($5,$8)); }
-	| ID'['NUM']''['NUM']' { $$ = makeArrayNode(NULL,makeVariableNode($1),makeConnectNode($3,$6)); }
-	| ID { $$ = makeVariableNode($1); }
+Varlist : Varlist COMMA DeclID { $$ = makeConnectNode($1, $3); }
+	| Varlist COMMA DeclID'['NUM']' { $$ = makeArrayNode($1,$3,$5); }
+	| DeclID'['NUM']' { $$ = makeArrayNode(NULL,$1,$3); }
+	| Varlist COMMA DeclID'['NUM']''['NUM']' { $$ = makeArrayNode($1,$3,makeConnectNode($5,$8)); }
+	| DeclID'['NUM']''['NUM']' { $$ = makeArrayNode(NULL,$1,makeConnectNode($3,$6)); }
+	| DeclID { $$ = $1; }
 	;
 
 Slist : Slist Stmt {$$ = makeConnectNode($1,$2);}
@@ -83,6 +88,7 @@ OutputStmt : WRITE'('expr')' SEMICOLON {$$ = makeWriteNode($3);}
 AsgStmt : ID ASSIGN expr SEMICOLON { $$ = makeAssignNode(makeVariableUseNode($1), $3); }
 	| ID '['expr']' ASSIGN expr SEMICOLON { $$ = makeAssignNode(makeArrayAccessNode(makeVariableUseNode($1), $3), $6); }
 	| ID '['expr']''['expr']' ASSIGN expr SEMICOLON { $$ = makeAssignNode(makeArrayAccessNode(makeVariableUseNode($1), makeConnectNode($3,$6)), $9); }
+	| MUL expr ASSIGN expr SEMICOLON { $$ = makeAssignNode(makeDerefNode($2), $4); }
 	;
 
 IfStmt : IF '('expr')' THEN Slist ELSE Slist ENDIF SEMICOLON {$$ = makeIfElseNode($3,$6,$8);}
@@ -114,6 +120,8 @@ expr : expr PLUS expr			{$$ = makeOperatorNode('+',$1,$3);}
      | expr EQ expr         	{$$ = makeCOperatorNode('E',$1,$3);}
 	 | ID'['expr']' 			{$$ = makeArrayAccessNode(makeVariableUseNode($1), $3);}
 	 | ID'['expr']''['expr']' 	{$$ = makeArrayAccessNode(makeVariableUseNode($1), makeConnectNode($3,$6));}
+	 | AMPERSAND ID				{$$ = makeAddrNode((tnode*)makeVariableUseNode($2));}
+	 | MUL expr %prec UNARY { $$ = makeDerefNode($2); }
 	;
 
 %%

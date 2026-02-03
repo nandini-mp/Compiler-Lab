@@ -120,4 +120,6 @@ struct tnode* makeArrayNode(tnode* varList, struct tnode* id, tnode* size);
 
 struct tnode* makeArrayAccessNode(tnode* name, tnode* index);
 
+int genArrayAddress(tnode* t);
+
 #endif

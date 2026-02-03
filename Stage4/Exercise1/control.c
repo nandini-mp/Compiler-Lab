@@ -551,41 +551,14 @@ int genAddressOfVar(tnode* t)
 		fprintf(target_file, "MOV R%d, %d\n", addrReg, t->symbolTableEntry->binding);
 		return addrReg;
 	}
-	int baseAddr = t->symbolTableEntry->binding;
-	if (t->nodetype == Narraccess)
-	{
-
-		if (t->right == NULL || t->right->nodetype != Nconnect)
-		{
-			int indexReg = codeGen(t->right);
-			fprintf(target_file, "MOV R%d, %d\n", addrReg, baseAddr);
-			fprintf(target_file, "ADD R%d, R%d\n", addrReg, indexReg);
-			releaseRegister(indexReg);
-			return addrReg;
-		}
-
-		tnode *rowNode = t->right->left;
-		tnode *colNode = t->right->right;
-
-		int rowReg = codeGen(rowNode);
-		int colReg = codeGen(colNode);
-
-		int cols = t->symbolTableEntry->dimension[1];
-		fprintf(target_file, "MUL R%d, %d\n", rowReg, cols);
-		fprintf(target_file, "ADD R%d, R%d\n", rowReg, colReg);
-		fprintf(target_file, "MOV R%d, %d\n", addrReg, baseAddr);
-		fprintf(target_file, "ADD R%d, R%d\n", addrReg, rowReg);
-		releaseRegister(rowReg);
-		releaseRegister(colReg);
-		return addrReg;
-	}
-
 	return -1;
 }
 
 int genAssignInstr(tnode *t)
 {
-	int addressReg = genAddressOfVar(t->left);
+	int addressReg;
+	if (t->left->nodetype == Narraccess) addressReg = genArrayAddress(t->left);
+	else addressReg = genAddressOfVar(t->left);
 	int evalExprReg = codeGen(t->right);
 	fprintf(target_file,"MOV [R%d],R%d\n", addressReg, evalExprReg);
 	releaseRegister(addressReg);
@@ -707,7 +680,6 @@ int codeGen(tnode* root)
 			return -1;
 		}
 		case Nvar :
-		case Narraccess : 
 		{
 			int addrReg = genAddressOfVar(root);
             int dataReg = getFreeRegister();
@@ -719,6 +691,10 @@ int codeGen(tnode* root)
 		case Nread :
 		{
 			int addrReg = genAddressOfVar(root->left);
+			if (root->left->nodetype == Narraccess)
+        		addrReg = genArrayAddress(root->left);
+			else
+				addrReg = genAddressOfVar(root->left);
 			genReadInstr(addrReg);
 			releaseRegister(addrReg);
 			return -1;
@@ -769,6 +745,14 @@ int codeGen(tnode* root)
 			int reg = getFreeRegister();
             fprintf(target_file, "MOV R%d, %s\n", reg, root->strVal);
             return reg;
+		}
+		case Narraccess :
+		{
+			int addrReg = genArrayAddress(root);
+			int dataReg = getFreeRegister();
+			fprintf(target_file,"MOV R%d, [R%d]\n",dataReg,addrReg);
+			releaseRegister(addrReg);
+			return dataReg;
 		}
 	}
 }
@@ -962,4 +946,45 @@ struct tnode* makeArrayAccessNode(tnode* name, tnode* index)
 	temp->left = index;
 	temp->right = NULL;
     return temp;
+}
+
+int genArrayAddress(tnode* t)
+{
+    Gsymbol* entry = t->symbolTableEntry;
+    int base = entry->binding;
+
+    int addrReg = getFreeRegister();
+
+    if (entry->numDim == 1)
+    {
+        int indexReg = codeGen(t->left);
+        fprintf(target_file, "MOV R%d, %d\n", addrReg, base);
+        fprintf(target_file, "ADD R%d, R%d\n", addrReg, indexReg);
+        releaseRegister(indexReg);
+        return addrReg;
+    }
+
+    if (entry->numDim == 2)
+    {
+        tnode* row = t->left->left;
+        tnode* col = t->left->right;
+
+        int rowReg = codeGen(row);
+        int colReg = codeGen(col);
+
+        int cols = entry->dimension[1];
+
+        fprintf(target_file, "MUL R%d, %d\n", rowReg, cols);
+        fprintf(target_file, "ADD R%d, R%d\n", rowReg, colReg);
+
+        fprintf(target_file, "MOV R%d, %d\n", addrReg, base);
+        fprintf(target_file, "ADD R%d, R%d\n", addrReg, rowReg);
+
+        releaseRegister(rowReg);
+        releaseRegister(colReg);
+        return addrReg;
+    }
+
+    printf("Unsupported array dimension\n");
+    exit(1);
 }

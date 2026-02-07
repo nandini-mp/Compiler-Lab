@@ -1,0 +1,24 @@
+decl
+    int a[2][4],pdt,i,j;
+enddecl
+begin
+    i = 0;
+    while (i<2) do
+        j = 0;
+        while (j<4) do
+            read(a[i][j]);
+            j = j+1;
+        endwhile;
+        i = i+1;
+    endwhile;
+    i = 0;
+    while (i<2) do
+        j = 0;
+        while (j<4) do
+            pdt = a[i][j]*a[1-i][3-j];
+            write(pdt);
+            j = j+1;
+        endwhile;
+        i = i+1;
+    endwhile;
+end;

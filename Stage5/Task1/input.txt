@@ -1,0 +1,12 @@
+decl
+  int a, b;
+  int arr[10];
+  int foo(int x, int y);
+  int bar();
+enddecl
+
+decl
+enddecl
+
+begin
+end;

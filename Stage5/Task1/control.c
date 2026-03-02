@@ -1070,6 +1070,8 @@ tnode* makeFnDeclNode(tnode* id, tnode* paramlist)
 	tnode* node = makeConnectNode(id,paramlist);
     node->nodetype = Nfdecl;
 	node->varname = id->varname;
+	node->paramlist = buildParamListFromTree(paramlist);
+	node->isFunction = 1;
     return node;
 }
 

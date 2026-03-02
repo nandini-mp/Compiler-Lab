@@ -35,6 +35,7 @@ typedef struct Param {
 struct Gsymbol *Lookup(char * name);            // Returns a pointer to the symbol table entry for the variable, returns NULL otherwise.
 Gsymbol* Install(char *name, int type, int size, int isPointer, int isFunction, Param* paramlist);   // Creates a symbol table entry
 void printParamList(Gsymbol* entry);
+Param* buildParamListFromTree(tnode* root);
 void printSymbolTable();
 void parseDecl(tnode* root);
 int getDim(tnode* root, int* count);

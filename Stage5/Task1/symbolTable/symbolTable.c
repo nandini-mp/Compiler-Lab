@@ -83,6 +83,30 @@ void printParamList(Gsymbol* entry)
     }
 }
 
+Param* buildParamListFromTree(tnode* root)
+{
+    if (!root) return NULL;
+    if (root->nodetype == Nparam)
+    {
+        Param* p = (Param*)malloc(sizeof(Param));
+        p->name = strdup(root->varname);
+        p->type = root->type;
+        p->next = NULL;
+        return p;
+    }
+    if (root->nodetype == Nconnect)
+    {
+        Param* left = buildParamListFromTree(root->left);
+        Param* right = buildParamListFromTree(root->right);
+        if (!left) return right;
+        Param* temp = left;
+        while (temp->next) temp = temp->next;
+        temp->next = right;
+        return left;
+    }
+    return NULL;
+}
+
 void printSymbolTable()
 {
     Gsymbol* temp = SThead;

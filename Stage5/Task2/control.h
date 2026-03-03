@@ -24,6 +24,8 @@ typedef struct tnode
 	int isFunction;
 	struct Param* paramlist;
 	struct tnode *left,*right;
+	struct tnode* body;
+	struct tnode* ldeclblock;
 } tnode;
 
 enum nodeTypes {
@@ -143,5 +145,7 @@ tnode* makeParamNode(tnode* type, tnode* id);
 tnode* makeFnCallNode(tnode* id, tnode* arglist);
 
 void checkSignature(Gsymbol* gEntry, int type, Param* formalParams);
+
+struct tnode* lookupVar(char *name);
 
 #endif

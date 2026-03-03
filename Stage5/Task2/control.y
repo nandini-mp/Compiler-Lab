@@ -7,6 +7,7 @@
 	#include "control.h"
 	#include "symbolTable/symbolTable.h"
 	int current_type;
+	int inLocalDecl;
 	int yyerror(const char*);
 	int yylex(void);
 	extern FILE *yyin;
@@ -34,12 +35,12 @@
 
 %%
 
-program : GDeclBlock FDefBlock MainBlock
-	| GDeclBlock MainBlock
-	| MainBlock
-	;
+program : GDeclBlock FDefBlock MainBlock { $$ = makeConnectNode($1, makeConnectNode($2, $3)); print($$); generate($$); exit(0); }
+        | GDeclBlock MainBlock { $$ = makeConnectNode($1, $2); print($$); generate($$); exit(0); }
+        | MainBlock { $$ = $1; print($$); generate($$); exit(0); }
+        ;
 
-GDeclBlock : DECL GdeclList ENDDECL {$$ = $2; print($$);}
+GDeclBlock : DECL {inLocalDecl = 0;} GdeclList ENDDECL {$$ = $3; print($$);}
 	| DECL ENDDECL {$$ = NULL;}
 
 GdeclList : GdeclList GDecl  {$$ = makeConnectNode($1,$2);}
@@ -61,7 +62,8 @@ FDefBlock : FDefBlock Fdef {$$ = makeConnectNode($1,$2);}
 	| Fdef {$$ = $1;}
 	;
 
-Fdef : Type ID '('ParamList')' '{'LdeclBlock Body'}' {$$ = makeFnDefNode($1, makeVariableNode($2),$4,$7,$8); ClearLST();}
+Fdef : Type ID '('ParamList')' '{'LdeclBlock Body'}' { $$ = makeFnDefNode($1, makeVariableNode($2), $4, $7, $8); ClearLST(); }
+
 
 ParamList : ParamList COMMA Param {$$ = makeConnectNode($1,$3);}
 	| Param {$$ = $1;}
@@ -71,7 +73,7 @@ ParamList : ParamList COMMA Param {$$ = makeConnectNode($1,$3);}
 Param : Type ID {$$ = makeParamNode($1, makeVariableNode($2));}
 	;
 
-LdeclBlock : DECL LDeclList ENDDECL {$$ = $2;}
+LdeclBlock : DECL {inLocalDecl = 1;} LDeclList ENDDECL {$$ = $3;}
 	| DECL ENDDECL {$$ = NULL;}
 	;
 
@@ -93,11 +95,11 @@ ArgList : ArgList COMMA expr { $$ = makeConnectNode($1, $3); }
 	| expr { $$ = $1; }
 	;
 
-MainBlock : Declarations {} BEGINN Slist ENDD SEMICOLON { $$ = makeConnectNode($1,$4); print($$); generate($$); exit(0);}
-	| Declarations BEGINN ENDD SEMICOLON {$$=NULL;}
-	;
+MainBlock : Declarations BEGINN Slist ENDD SEMICOLON { $$ = makeConnectNode($1, $3); }
+    | Declarations BEGINN ENDD SEMICOLON { $$ = $1; }
+    ;
 
-Declarations : DECL DeclList ENDDECL {$$ = $2;}
+Declarations : DECL {inLocalDecl = 0;} DeclList ENDDECL {$$ = $3;}
 	| DECL ENDDECL {$$ = NULL;}
 	;
 

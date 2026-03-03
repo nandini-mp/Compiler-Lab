@@ -43,5 +43,6 @@ void addDim(Gsymbol* symbol, tnode* root);
 struct Lsymbol* LLookup(char* name);
 void LInstall(char* name, int type);
 void ClearLST();
+struct tnode* lookupVar(char *name);
 
 #endif

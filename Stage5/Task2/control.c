@@ -10,6 +10,7 @@
 FILE* target_file;
 extern int stackVal;
 extern int current_type;
+extern int inLocalDecl;
 
 bool registers[20];
 
@@ -230,15 +231,34 @@ struct tnode *makeConnectNode(tnode *l, tnode *r)
 
 struct tnode *makeVariableNode(char* c)
 {
-	tnode *temp = (struct tnode*)malloc(sizeof(struct tnode));
-	temp->val = INT_MAX;
-	temp->type = 0;
-	temp->varname = (char*)malloc(strlen(c)+1);
-	strcpy(temp->varname,c);
-	temp->nodetype = Nvar;
-	temp->left = NULL;
-	temp->right = NULL;
-	return temp;
+    tnode *temp = (struct tnode*)malloc(sizeof(struct tnode));
+    temp->val = INT_MAX;
+    temp->type = 0;
+    temp->varname = (char*)malloc(strlen(c)+1);
+    strcpy(temp->varname,c);
+    temp->nodetype = Nvar;
+    temp->left = NULL;
+    temp->right = NULL;
+
+    // attach symbol table entries if available
+    temp->localSymbolTableEntry = LLookup(c);
+    if (temp->localSymbolTableEntry != NULL) {
+        temp->symbolTableEntry = NULL;
+        temp->type = temp->localSymbolTableEntry->type;
+    } else {
+        temp->symbolTableEntry = Lookup(c);
+        if (temp->symbolTableEntry != NULL) {
+            temp->type = temp->symbolTableEntry->type;
+        }
+    }
+
+    temp->isPointer = 0;
+    temp->isFunction = 0;
+    temp->paramlist = NULL;
+    temp->body = NULL;
+    temp->ldeclblock = NULL;
+
+    return temp;
 }
 
 struct tnode *makeConstantNode(int n)
@@ -375,15 +395,22 @@ struct tnode* createTree(int val, int type, char* varname, int nodetype, struct 
 	if (val!=INT_MAX) return makeConstantNode(val);
 	else if (varname!=NULL) return makeVariableNode(varname);
 	else
-	{
-		temp = (tnode*)malloc(sizeof(tnode));
-		temp->val = INT_MAX;
-		temp->type = type;
-		temp->nodetype = nodetype;
-		temp->varname = NULL;
-		temp->left = l;
-		temp->right = r;		
-	}
+    {
+        temp = (tnode*)malloc(sizeof(tnode));
+        temp->val = INT_MAX;
+        temp->type = type;
+        temp->nodetype = nodetype;
+        temp->varname = NULL;
+        temp->left = l;
+        temp->right = r;
+        temp->symbolTableEntry = NULL;
+        temp->localSymbolTableEntry = NULL;
+        temp->isPointer = 0;
+        temp->isFunction = 0;
+        temp->paramlist = NULL;
+        temp->body = NULL;
+        temp->ldeclblock = NULL;
+    }
 	return temp;
 }
 
@@ -550,22 +577,39 @@ int genConstInstr(int val)
 
 int genAddressOfVar(tnode* t) {
     int addrReg = getFreeRegister();
+
+    // If no bindings yet, try to resolve now (local first, then global)
+    if (t->localSymbolTableEntry == NULL && t->symbolTableEntry == NULL && t->varname != NULL) {
+        Lsymbol *l = LLookup(t->varname);
+        if (l != NULL) {
+            t->localSymbolTableEntry = l;
+            t->type = l->type;
+        } else {
+            Gsymbol *g = Lookup(t->varname);
+            if (g != NULL) {
+                t->symbolTableEntry = g;
+                t->type = g->type;
+            }
+        }
+    }
+
     // 1. Check if it's a Local Variable
     if (t->localSymbolTableEntry != NULL) {
-        // Local address is BP + offset
         fprintf(target_file, "MOV R%d, BP\n", addrReg);
         fprintf(target_file, "ADD R%d, %d\n", addrReg, t->localSymbolTableEntry->binding);
-    } 
+    }
     // 2. Otherwise use Global binding
     else if (t->symbolTableEntry != NULL) {
         fprintf(target_file, "MOV R%d, %d\n", addrReg, t->symbolTableEntry->binding);
-    } 
+    }
     else {
         printf("Error: Variable %s undeclared\n", t->varname);
         exit(1);
     }
+
     return addrReg;
 }
+
 
 int genAssignInstr(tnode *t)
 {
@@ -937,16 +981,37 @@ struct tnode* makeDeclNode(struct tnode* typeNode, struct tnode* varlist) {
     while (temp != NULL) {
         struct tnode* target = (temp->nodetype == Nconnect) ? temp->right : temp;
         if (target != NULL && target->varname != NULL) {
-            if (Lookup(target->varname) == NULL) {
-                if (target->nodetype == Nvar) {
-                    Install(target->varname, type, 1, target->isPointer, 0, NULL);
-                } 
-                else if (target->nodetype == Narr) {
-                    int size = (target->right) ? target->right->val : 1;
-                    Install(target->varname, type, size, 0, 0, NULL);
-                }
-            }
-        }
+			if (!inLocalDecl) {
+				// Global / main declarations
+				if (target->nodetype == Nfdecl) {
+					// function declarations are already installed in makeFnDeclNode
+				} else {
+					if (Lookup(target->varname) != NULL) {
+						printf("Semantic Error: Global variable %s redeclared\n", target->varname);
+						exit(1);
+					}
+					if (target->nodetype == Nvar) {
+						Install(target->varname, type, 1, target->isPointer, 0, NULL);
+					}
+					else if (target->nodetype == Narr) {
+						int count = 0;
+						int totalSize = getDim(target->right, &count);
+						Gsymbol* entry = Install(target->varname, type, totalSize, target->isPointer, 0, NULL);
+						entry->dimension = (int*)malloc(count * sizeof(int));
+						entry->numDim = 0;
+						addDim(entry, target->right);
+					}
+				}
+			} else {
+				// Local declarations inside function
+				if (LLookup(target->varname) != NULL) {
+					printf("Semantic Error: Local variable %s redeclared\n", target->varname);
+					exit(1);
+				}
+				LInstall(target->varname, type);
+			}
+		}
+
         if (temp->nodetype == Nconnect)
             temp = temp->left;
         else
@@ -1110,13 +1175,19 @@ struct tnode* makeFnDefNode(tnode* type, tnode* id, tnode* paramlist, tnode* lde
     }
     Param* formalParams = buildParamListFromTree(paramlist);
     checkSignature(gEntry, type->type, formalParams);
+
     tnode* node = (tnode*)malloc(sizeof(tnode));
     node->nodetype = Nfdef;
     node->type = type->type;
     node->varname = strdup(id->varname);
-    node->left = paramlist;
-    node->right = makeConnectNode(ldeclblock, body);
+    node->left = paramlist;     // parameters AST
+    node->right = NULL;
     node->symbolTableEntry = gEntry;
+    node->localSymbolTableEntry = NULL;
+    node->isFunction = 1;
+    node->paramlist = formalParams;
+    node->body = body;          // function body AST
+    node->ldeclblock = ldeclblock; // local decls AST
     return node;
 }
 
@@ -1137,14 +1208,42 @@ struct tnode* makeFnCallNode(tnode* id, tnode* arglist) {
         printf("Semantic Error: %s is not a declared function\n", id->varname);
         exit(1);
     }
-    Param* p = entry->paramlist;
-    tnode* arg = arglist;
+
+    // Check argument types and count against formal parameters
+    Param* fp = entry->paramlist;
+    tnode* ap = arglist;
+    tnode* cur = ap;
+    while (fp != NULL && cur != NULL) {
+        tnode* argNode = (cur->nodetype == Nconnect) ? cur->right : cur;
+        int atype = argNode->type;
+        if (argNode->symbolTableEntry)
+            atype = argNode->symbolTableEntry->type;
+        if (atype != fp->type) {
+            printf("Semantic Error: Argument type mismatch in call to %s\n", entry->name);
+            exit(1);
+        }
+        fp = fp->next;
+        if (cur->nodetype == Nconnect)
+            cur = cur->left;
+        else
+            cur = NULL;
+    }
+    if (fp != NULL || cur != NULL) {
+        printf("Semantic Error: Argument count mismatch in call to %s\n", entry->name);
+        exit(1);
+    }
+
     tnode* node = (tnode*)malloc(sizeof(tnode));
     node->nodetype = Nfcall;
     node->left = id;
     node->right = arglist;
     node->symbolTableEntry = entry;
+    node->localSymbolTableEntry = NULL;
     node->type = entry->type;
+    node->isFunction = 0;
+    node->paramlist = NULL;
+    node->body = NULL;
+    node->ldeclblock = NULL;
     return node;
 }
 

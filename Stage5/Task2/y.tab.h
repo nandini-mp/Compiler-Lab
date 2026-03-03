@@ -143,7 +143,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 15 "control.y"
+#line 16 "control.y"
 
 	struct tnode *no;
 	char* str;

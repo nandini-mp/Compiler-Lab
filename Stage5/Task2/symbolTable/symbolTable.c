@@ -38,7 +38,9 @@ Gsymbol* Install(char *name, int type, int size, int isPointer, int isFunction, 
     node->isPointer = isPointer;
     node->isFunction = isFunction;
     node->paramlist = paramlist;
-    
+    node->dimension = NULL;   // init
+    node->numDim = 0;         // init
+
     if (isFunction)
     {
         node->binding = -1;
@@ -50,7 +52,6 @@ Gsymbol* Install(char *name, int type, int size, int isPointer, int isFunction, 
         stackVal += size;
         node->flabel = -1;
     }
-
     if (!SThead)
     {
         SThead = node;
@@ -252,4 +253,46 @@ void ClearLST() {
     LSThead = NULL;
     LSTtail = NULL;
     localBinding = 1; // Reset binding for next function
+}
+
+struct tnode* lookupVar(char *name) {
+    // First, try local symbol table
+    Lsymbol *l = LLookup(name);
+    if (l != NULL) {
+        tnode *t = (tnode*)malloc(sizeof(tnode));
+        t->varname = strdup(name);
+        t->nodetype = Nvar;
+        t->localSymbolTableEntry = l;
+        t->symbolTableEntry = NULL;
+        t->type = l->type;
+        t->left = NULL;
+        t->right = NULL;
+        t->isPointer = 0;
+        t->isFunction = 0;
+        t->paramlist = NULL;
+        t->body = NULL;
+        t->ldeclblock = NULL;
+        return t;
+    }
+
+    // Then, try global symbol table
+    Gsymbol *g = Lookup(name);
+    if (g != NULL) {
+        tnode *t = (tnode*)malloc(sizeof(tnode));
+        t->varname = strdup(name);
+        t->nodetype = Nvar;
+        t->symbolTableEntry = g;
+        t->localSymbolTableEntry = NULL;
+        t->type = g->type;
+        t->left = NULL;
+        t->right = NULL;
+        t->isPointer = g->isPointer;
+        t->isFunction = g->isFunction;
+        t->paramlist = NULL;
+        t->body = NULL;
+        t->ldeclblock = NULL;
+        return t;
+    }
+
+    return NULL;
 }

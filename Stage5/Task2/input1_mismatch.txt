@@ -1,0 +1,20 @@
+decl
+int x;
+int updateX(int val);
+enddecl
+
+int updateX(int v) {
+decl
+enddecl
+x = v + 10;
+write(x);
+}
+
+decl
+int inputVal;
+enddecl
+begin
+read(inputVal);
+inputVal = updateX(inputVal);
+write(inputVal);
+end;

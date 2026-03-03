@@ -8,6 +8,7 @@
 	#include "symbolTable/symbolTable.h"
 	int current_type;
 	int inLocalDecl;
+	extern int inParamList;
 	tnode* ASTRoot = NULL;
 	int yyerror(const char*);
 	int yylex(void);
@@ -63,7 +64,7 @@ FDefBlock : FDefBlock Fdef {$$ = makeConnectNode($1,$2);}
 	| Fdef {$$ = $1;}
 	;
 
-Fdef : Type ID '('ParamList')' '{'LdeclBlock Body'}' { $$ = makeFnDefNode($1, makeVariableNode($2), $4, $7, $8); ClearLST(); }
+Fdef : Type ID '('ParamList')' '{'LdeclBlock Body'}' { $$ = makeFnDefNode($1, makeVariableNode($2), $4, $7, $8); }
 
 
 ParamList : ParamList COMMA Param {$$ = makeConnectNode($1,$3);}
@@ -74,7 +75,7 @@ ParamList : ParamList COMMA Param {$$ = makeConnectNode($1,$3);}
 Param : Type ID {$$ = makeParamNode($1, makeVariableNode($2));}
 	;
 
-LdeclBlock : DECL {inLocalDecl = 1;} LDeclList ENDDECL {$$ = $3;}
+LdeclBlock : DECL {inLocalDecl = 1; inParamList = 0;} LDeclList ENDDECL {$$ = $3;}
 	| DECL ENDDECL {$$ = NULL;}
 	;
 
@@ -100,7 +101,7 @@ MainBlock : Declarations BEGINN Slist ENDD SEMICOLON { $$ = makeConnectNode($1, 
     | Declarations BEGINN ENDD SEMICOLON { $$ = $1; }
     ;
 
-Declarations : DECL {inLocalDecl = 0;} DeclList ENDDECL {$$ = $3;}
+Declarations : DECL {inLocalDecl = 0; inParamList = 0;} DeclList ENDDECL {$$ = $3;}
 	| DECL ENDDECL {$$ = NULL;}
 	;
 

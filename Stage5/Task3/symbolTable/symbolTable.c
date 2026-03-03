@@ -239,6 +239,8 @@ void LInstall(char* name, int type) {
     }
 
     temp->next = NULL;
+    printf("Installing %s | type=%d | binding=%d | inParamList=%d\n",
+       name, type, temp->binding, inParamList);
 
     if (LSThead == NULL) {
         LSThead = temp;

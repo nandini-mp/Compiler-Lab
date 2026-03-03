@@ -579,33 +579,35 @@ int genConstInstr(int val)
 int genAddressOfVar(tnode* t) {
     int addrReg = getFreeRegister();
 
-    // If no bindings yet, try to resolve now (local first, then global)
-    if (t->localSymbolTableEntry == NULL && t->symbolTableEntry == NULL && t->varname != NULL) {
+    // Use the bindings stored in the AST node.
+    if (t->localSymbolTableEntry != NULL) {
+        // Local: binding is relative to BP
+        fprintf(target_file, "MOV R%d, BP\n", addrReg);
+        fprintf(target_file, "ADD R%d, %d\n", addrReg, t->localSymbolTableEntry->binding);
+    }
+    else if (t->symbolTableEntry != NULL) {
+        // Global: absolute binding
+        fprintf(target_file, "MOV R%d, %d\n", addrReg, t->symbolTableEntry->binding);
+    }
+    else {
+        // If both are NULL, treat as a late resolution only once
         Lsymbol *l = LLookup(t->varname);
         if (l != NULL) {
             t->localSymbolTableEntry = l;
             t->type = l->type;
+            fprintf(target_file, "MOV R%d, BP\n", addrReg);
+            fprintf(target_file, "ADD R%d, %d\n", addrReg, l->binding);
         } else {
             Gsymbol *g = Lookup(t->varname);
             if (g != NULL) {
                 t->symbolTableEntry = g;
                 t->type = g->type;
+                fprintf(target_file, "MOV R%d, %d\n", addrReg, g->binding);
+            } else {
+                printf("Error: Variable %s undeclared\n", t->varname);
+                exit(1);
             }
         }
-    }
-
-    // 1. Check if it's a Local Variable
-    if (t->localSymbolTableEntry != NULL) {
-        fprintf(target_file, "MOV R%d, BP\n", addrReg);
-        fprintf(target_file, "ADD R%d, %d\n", addrReg, t->localSymbolTableEntry->binding);
-    }
-    // 2. Otherwise use Global binding
-    else if (t->symbolTableEntry != NULL) {
-        fprintf(target_file, "MOV R%d, %d\n", addrReg, t->symbolTableEntry->binding);
-    }
-    else {
-        printf("Error: Variable %s undeclared\n", t->varname);
-        exit(1);
     }
 
     return addrReg;
@@ -716,7 +718,7 @@ int countLocals() {
     int count = 0;
     struct Lsymbol* temp = LSThead;
     while (temp != NULL) {
-        if (temp->binding > 0)  // binding > 0 => local (not param)
+        if (temp->binding > 0)  // BP+1, BP+2, ... => locals
             count++;
         temp = temp->next;
     }
@@ -772,7 +774,7 @@ int codeGen(tnode* root)
 			codeGen(root->right);
 			return -1;
 		}
-		case Nvar :
+				case Nvar :
 		{
 			int addrReg = genAddressOfVar(root);
             int dataReg = getFreeRegister();
@@ -865,97 +867,106 @@ int codeGen(tnode* root)
 		{
 			Gsymbol* g = root->symbolTableEntry;
 			int fnLabel = g->flabel;
+
 			fprintf(target_file, "F%d:\n", fnLabel);
+
+			// Prologue: save caller BP, set new BP
 			fprintf(target_file, "PUSH BP\n");
 			fprintf(target_file, "MOV BP, SP\n");
 
+			// Allocate space for locals: BP+1, BP+2, ...
 			int localCount = countLocals();
-			for (int i = 0; i < localCount; i++)
+			for (int i = 0; i < localCount; i++) {
 				fprintf(target_file, "PUSH R0\n");
+			}
 
-			// Generate body; it may contain Nreturn nodes that do epilogue+RET
-			codeGen(root->body);
+			// Generate local declarations (if any) – usually no code, but keeps structure consistent
+			if (root->ldeclblock)
+				codeGen(root->ldeclblock);
+				
+			// Generate body; Nreturn only stores return value
+			if (root->body)
+				codeGen(root->body);
 
-			// If control reaches here and there was no explicit return, do default epilogue+RET
+
+			// If control reaches here with no explicit return,
+			// do default: no return value, just clean up and RET.
 			for (int i = 0; i < localCount; i++)
 				fprintf(target_file, "POP R0\n");
 			fprintf(target_file, "POP BP\n");
 			fprintf(target_file, "RET\n");
+
 			return -1;
 		}
-		    case Nfcall :
-			{
-				// 1. save registers in use
-				int savedRegs[20];
-				int savedCount = 0;
-				for (int i = 0; i < 20; i++) {
-					if (!registers[i]) {  // register i is currently in use
-						fprintf(target_file, "PUSH R%d\n", i);
-						savedRegs[savedCount++] = i;
-					}
-				}
 
-				// 2. collect arguments in order arg1, arg2, ...
-				tnode* arg = root->right;
-				tnode* argNodes[50];
-				int argCount = 0;
-				while (arg != NULL) {
-					tnode* argNode = (arg->nodetype == Nconnect) ? arg->right : arg;
-					argNodes[argCount++] = argNode;
-					if (arg->nodetype == Nconnect)
-						arg = arg->left;
-					else
-						arg = NULL;
-				}
-
-				// 3. push args right-to-left so arg1 is closest to BP
-				for (int i = argCount - 1; i >= 0; i--) {
-					int r = codeGen(argNodes[i]);
-					fprintf(target_file, "PUSH R%d\n", r);
-					releaseRegister(r);
-				}
-
-				// 4. push one slot for return value
-				fprintf(target_file, "PUSH R0\n");
-
-				// 5. call function
-				Gsymbol* g = root->symbolTableEntry;
-				fprintf(target_file, "CALL F%d\n", g->flabel);
-
-				// 6. pop return value from the reserved slot into a register
-				int retReg = getFreeRegister();
-				fprintf(target_file, "POP R%d\n", retReg);
-
-				// 7. pop arguments (we don't need their values now)
-				for (int i = 0; i < argCount; i++) {
-					fprintf(target_file, "POP R0\n");
-				}
-
-				// 8. restore previously saved registers
-				for (int i = savedCount - 1; i >= 0; i--) {
-					fprintf(target_file, "POP R%d\n", savedRegs[i]);
-				}
-
-				// 9. retReg holds the function result
-				return retReg;
-			}
 		case Nreturn:
 		{
-			int r = codeGen(root->left); //return expr
-			// store into caller's return slot at [BP-2]
+			int r = codeGen(root->left); // compute return expression into r
+
+			// store return value into caller's reserved slot at [BP-2]
 			int addr = getFreeRegister();
 			fprintf(target_file, "MOV R%d, BP\n", addr);
 			fprintf(target_file, "ADD R%d, -2\n", addr);
 			fprintf(target_file, "MOV [R%d], R%d\n", addr, r);
 			releaseRegister(addr);
 			releaseRegister(r);
-			int localCount = countLocals();
-			for (int i = 0; i < localCount; i++)
-				fprintf(target_file, "POP R0\n");
-			fprintf(target_file, "POP BP\n");
-			fprintf(target_file, "RET\n");
-
 			return -1;
+		}
+		case Nfcall:
+		{
+			Gsymbol* g = root->symbolTableEntry;   // callee
+			tnode* ap = root->right;               // arglist AST
+
+			// 1. Save caller registers in use
+			for (int i = 0; i < 20; i++) {
+				if (!registers[i]) {
+					fprintf(target_file, "PUSH R%d\n", i);
+				}
+			}
+
+			// 2. Collect args into array for reverse pushing
+			tnode* cur = ap;
+			tnode* args[64];
+			int ac = 0;
+			while (cur != NULL) {
+				tnode* argNode = (cur->nodetype == Nconnect) ? cur->right : cur;
+				args[ac++] = argNode;
+				if (cur->nodetype == Nconnect)
+					cur = cur->left;
+				else
+					break;
+			}
+
+			// 3. Push arguments in reverse order
+			for (int i = ac - 1; i >= 0; i--) {
+				int r = codeGen(args[i]);
+				fprintf(target_file, "PUSH R%d\n", r);
+				releaseRegister(r);
+			}
+
+			// 4. Push empty slot for return value
+			fprintf(target_file, "PUSH R0\n");
+
+			// 5. Call function
+			fprintf(target_file, "CALL F%d\n", g->flabel);
+
+			// 6. Pop return value into a fresh register
+			int retReg = getFreeRegister();
+			fprintf(target_file, "POP R%d\n", retReg);
+
+			// 7. Pop arguments
+			for (int i = 0; i < ac; i++) {
+				fprintf(target_file, "POP R0\n");
+			}
+
+			// 8. Restore caller registers
+			for (int i = 19; i >= 0; i--) {
+				if (!registers[i]) {
+					fprintf(target_file, "POP R%d\n", i);
+				}
+			}
+
+			return retReg;
 		}
 
 	}
@@ -963,14 +974,20 @@ int codeGen(tnode* root)
 
 void generate(tnode* root)
 {
-	target_file = fopen("intermediate.xsm","w");
-	initializeRegisters();
-	fprintf(target_file, "0\n2056\n0\n0\n0\n0\n0\n0\n");
+    target_file = fopen("intermediate.xsm","w");
+    initializeRegisters();
+    fprintf(target_file, "0\n2056\n0\n0\n0\n0\n0\n0\n");
     fprintf(target_file, "BRKP\n");
-    fprintf(target_file, "MOV SP, %d\n",stackVal-1);
-	fprintf(fp, "JMP MAIN\n");
-	codeGen(root);
-	generateExit();
+    fprintf(target_file, "MOV SP, %d\n", stackVal-1);
+    fprintf(target_file, "JMP MAIN\n");
+    if (root && root->right && root->right->left)
+        codeGen(root->right->left);
+
+    fprintf(target_file, "MAIN:\n");
+    if (root && root->right && root->right->right)
+        codeGen(root->right->right);
+
+    generateExit();
 }
 
 void genBreakCode()
@@ -1143,26 +1160,30 @@ struct tnode* makeTypeNode(int type)
 }
 
 struct tnode* makeVariableUseNode(char* name) {
-    struct tnode* temp = (struct tnode*)malloc(sizeof(struct tnode));
+    tnode* temp = (tnode*)malloc(sizeof(tnode));
     temp->varname = strdup(name);
     temp->left = temp->right = NULL;
     temp->nodetype = Nvar;
-    struct Lsymbol* lEntry = LLookup(name);
-    if (lEntry != NULL) {
-        temp->localSymbolTableEntry = lEntry;
-        temp->symbolTableEntry = NULL;
-        temp->type = lEntry->type;
-        return temp;
-    } 
-    struct Gsymbol* gEntry = Lookup(name);
-    if (gEntry != NULL) {
-        temp->symbolTableEntry = gEntry;
-        temp->localSymbolTableEntry = NULL;
-        temp->type = gEntry->type;
-        return temp;
-    }
-    printf("Semantic Error: Variable %s undeclared\n", name);
-    exit(1);
+
+    // Do NOT error here; just leave entries NULL.
+    // genAddressOfVar() will resolve local/global bindings later.
+    temp->localSymbolTableEntry = LLookup(name);
+    temp->symbolTableEntry      = Lookup(name);
+
+    if (temp->localSymbolTableEntry != NULL)
+        temp->type = temp->localSymbolTableEntry->type;
+    else if (temp->symbolTableEntry != NULL)
+        temp->type = temp->symbolTableEntry->type;
+    else
+        temp->type = 0;  // default INT; real type checks still come from decls
+
+    temp->isPointer = 0;
+    temp->isFunction = 0;
+    temp->paramlist = NULL;
+    temp->body = NULL;
+    temp->ldeclblock = NULL;
+
+    return temp;
 }
 
 struct tnode* makeArrayNode(tnode* varList, struct tnode* id, tnode* size)

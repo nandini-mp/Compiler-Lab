@@ -914,17 +914,10 @@ int codeGen(tnode* root)
 		}
 		case Nfcall:
 		{
-			Gsymbol* g = root->symbolTableEntry;   // callee
-			tnode* ap = root->right;               // arglist AST
+			Gsymbol* g = root->symbolTableEntry;
+			tnode* ap = root->right;
 
-			// 1. Save caller registers in use
-			for (int i = 0; i < 20; i++) {
-				if (!registers[i]) {
-					fprintf(target_file, "PUSH R%d\n", i);
-				}
-			}
-
-			// 2. Collect args into array for reverse pushing
+			// Collect args into array for reverse push
 			tnode* cur = ap;
 			tnode* args[64];
 			int ac = 0;
@@ -937,38 +930,30 @@ int codeGen(tnode* root)
 					break;
 			}
 
-			// 3. Push arguments in reverse order
+			// 1. Push args in reverse order
 			for (int i = ac - 1; i >= 0; i--) {
 				int r = codeGen(args[i]);
 				fprintf(target_file, "PUSH R%d\n", r);
 				releaseRegister(r);
 			}
 
-			// 4. Push empty slot for return value
+			// 2. Push empty slot for return value
 			fprintf(target_file, "PUSH R0\n");
 
-			// 5. Call function
+			// 3. Call function
 			fprintf(target_file, "CALL F%d\n", g->flabel);
 
-			// 6. Pop return value into a fresh register
+			// 4. Pop return value into fresh register
 			int retReg = getFreeRegister();
 			fprintf(target_file, "POP R%d\n", retReg);
 
-			// 7. Pop arguments
+			// 5. Pop arguments
 			for (int i = 0; i < ac; i++) {
 				fprintf(target_file, "POP R0\n");
 			}
 
-			// 8. Restore caller registers
-			for (int i = 19; i >= 0; i--) {
-				if (!registers[i]) {
-					fprintf(target_file, "POP R%d\n", i);
-				}
-			}
-
 			return retReg;
 		}
-
 	}
 }
 

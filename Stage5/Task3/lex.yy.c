@@ -1837,7 +1837,7 @@ int yywrap() {
 }
 
 int main() {
-    yyin = fopen("intermediate.xsm", "r"); // Make sure this matches your generator output
+    yyin = fopen("intermediate.xsm", "r");
     translatedFile = fopen("translatedFile.xsm", "w");
     yylex();
     return 0;

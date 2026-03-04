@@ -12,6 +12,8 @@ extern int stackVal;
 extern int current_type;
 extern int inLocalDecl;
 extern struct Lsymbol* LSThead;
+int currentFnLocalCount = 0;
+int fnHasReturned = 0;
 
 bool registers[20];
 
@@ -245,6 +247,7 @@ struct tnode *makeVariableNode(char* c)
     temp->localSymbolTableEntry = LLookup(c);
     if (temp->localSymbolTableEntry != NULL) {
         temp->symbolTableEntry = NULL;
+		temp->localBinding = temp->localSymbolTableEntry->binding;
         temp->type = temp->localSymbolTableEntry->type;
     } else {
         temp->symbolTableEntry = Lookup(c);
@@ -524,48 +527,50 @@ void genWriteToMem(int r,int mem)
 	fprintf(target_file,"MOV [%d],R%d\n",mem,r);
 }
 
-void genReadInstr(int addrReg)
-{
-	int a = getFreeRegister();
-	int b = getFreeRegister();
-	int c = getFreeRegister();
-	int d = getFreeRegister();
-	int e = getFreeRegister();
-	fprintf(target_file,"MOV R%d, \"%s\"\n",a,"Read");
-	fprintf(target_file,"PUSH R%d\n",a);
-	fprintf(target_file,"MOV R%d, %d\n",b,-1);
-	fprintf(target_file,"PUSH R%d\n",b);
-	fprintf(target_file,"PUSH R%d\n",addrReg);
-	fprintf(target_file,"PUSH R%d\n",d);
-	fprintf(target_file,"PUSH R%d\n",e);
-	fprintf(target_file,"CALL 0\n");
-	fprintf(target_file,"SUB SP,5\n");
-	releaseRegister(a);
-	releaseRegister(b);
-	releaseRegister(c);
-	releaseRegister(d);
-	releaseRegister(e);
+void genReadInstr(int memreg) {
+    int a = getFreeRegister();
+    int b = getFreeRegister();
+    int d = getFreeRegister();
+    int e = getFreeRegister();
+
+    fprintf(target_file, "MOV R%d, \"%s\"\n", a, "Read");
+    fprintf(target_file, "PUSH R%d\n", a);
+    fprintf(target_file, "MOV R%d, -1\n", b);
+    fprintf(target_file, "PUSH R%d\n", b);
+    fprintf(target_file, "PUSH R%d\n", memreg);
+    fprintf(target_file, "PUSH R%d\n", d);
+    fprintf(target_file, "PUSH R%d\n", e);
+    fprintf(target_file, "CALL 0\n");
+    fprintf(target_file, "SUB SP, 5\n");
+
+    releaseRegister(a);
+    releaseRegister(b);
+    releaseRegister(memreg);
+    releaseRegister(d);
+    releaseRegister(e);
 }
 
-void genWriteInstr(int x)
-{
-	int a = getFreeRegister();
-	int b = getFreeRegister();
-	int c = getFreeRegister();
-	int d = getFreeRegister();
-	fprintf(target_file,"MOV R%d, \"%s\"\n",a,"Write");
-	fprintf(target_file,"PUSH R%d\n",a);
-	fprintf(target_file,"MOV R%d, %d\n",b,-2);
-	fprintf(target_file,"PUSH R%d\n",b);
-	fprintf(target_file,"PUSH R%d\n",x);
-	fprintf(target_file,"PUSH R%d\n",c);
-	fprintf(target_file,"PUSH R%d\n",d);
-	fprintf(target_file,"CALL 0\n");
-	fprintf(target_file,"SUB SP,5\n");
-	releaseRegister(a);
-	releaseRegister(b);
-	releaseRegister(c);
-	releaseRegister(d);
+void genWriteInstr(int reg) {
+    int a = getFreeRegister();
+    int b = getFreeRegister();
+    int c = getFreeRegister();
+    int d = getFreeRegister();
+
+    fprintf(target_file, "MOV R%d, \"%s\"\n", a, "Write");
+    fprintf(target_file, "PUSH R%d\n", a);
+    fprintf(target_file, "MOV R%d, -2\n", b); 
+    fprintf(target_file, "PUSH R%d\n", b);
+    fprintf(target_file, "PUSH R%d\n", reg);
+    fprintf(target_file, "PUSH R%d\n", c);
+    fprintf(target_file, "PUSH R%d\n", d);
+    fprintf(target_file, "CALL 0\n");
+    fprintf(target_file, "SUB SP, 5\n");
+
+    releaseRegister(a);
+    releaseRegister(b);
+    releaseRegister(c);
+    releaseRegister(d);
+    releaseRegister(reg);
 }
 
 
@@ -583,7 +588,7 @@ int genAddressOfVar(tnode* t) {
     if (t->localSymbolTableEntry != NULL) {
         // Local: binding is relative to BP
         fprintf(target_file, "MOV R%d, BP\n", addrReg);
-        fprintf(target_file, "ADD R%d, %d\n", addrReg, t->localSymbolTableEntry->binding);
+        fprintf(target_file, "ADD R%d, %d\n", addrReg, t->localBinding);
     }
     else if (t->symbolTableEntry != NULL) {
         // Global: absolute binding
@@ -595,8 +600,9 @@ int genAddressOfVar(tnode* t) {
         if (l != NULL) {
             t->localSymbolTableEntry = l;
             t->type = l->type;
+			t->localBinding = l->binding;
             fprintf(target_file, "MOV R%d, BP\n", addrReg);
-            fprintf(target_file, "ADD R%d, %d\n", addrReg, l->binding);
+            fprintf(target_file, "ADD R%d, %d\n", addrReg, t->localBinding);
         } else {
             Gsymbol *g = Lookup(t->varname);
             if (g != NULL) {
@@ -616,10 +622,13 @@ int genAddressOfVar(tnode* t) {
 
 int genAssignInstr(tnode *t)
 {
+    // Evaluate RHS first
+    int evalExprReg = codeGen(t->right);
+
+    // Then compute LHS address (after RHS is done, so no clobbering)
     int addressReg;
-    
     if (t->left->nodetype == Nderef) {
-        addressReg = codeGen(t->left->left); 
+        addressReg = codeGen(t->left->left);
     }
     else if (t->left->nodetype == Narraccess) {
         addressReg = genArrayAddress(t->left);
@@ -628,10 +637,8 @@ int genAssignInstr(tnode *t)
         addressReg = genAddressOfVar(t->left);
     }
 
-    int evalExprReg = codeGen(t->right);
-    
     fprintf(target_file, "MOV [R%d], R%d\n", addressReg, evalExprReg);
-    
+
     releaseRegister(addressReg);
     releaseRegister(evalExprReg);
     return -1;
@@ -875,7 +882,8 @@ int codeGen(tnode* root)
 			fprintf(target_file, "MOV BP, SP\n");
 
 			// Allocate space for locals: BP+1, BP+2, ...
-			int localCount = countLocals();
+			int localCount = root->val;
+			currentFnLocalCount = localCount;
 			for (int i = 0; i < localCount; i++) {
 				fprintf(target_file, "PUSH R0\n");
 			}
@@ -884,6 +892,7 @@ int codeGen(tnode* root)
 			if (root->ldeclblock)
 				codeGen(root->ldeclblock);
 				
+			fnHasReturned = 0;
 			// Generate body; Nreturn only stores return value
 			if (root->body)
 				codeGen(root->body);
@@ -891,25 +900,32 @@ int codeGen(tnode* root)
 
 			// If control reaches here with no explicit return,
 			// do default: no return value, just clean up and RET.
-			for (int i = 0; i < localCount; i++)
-				fprintf(target_file, "POP R0\n");
-			fprintf(target_file, "POP BP\n");
-			fprintf(target_file, "RET\n");
-
+			if (!fnHasReturned)
+			{
+				for (int i = 0; i < localCount; i++)
+					fprintf(target_file, "POP R0\n");
+				fprintf(target_file, "POP BP\n");
+				fprintf(target_file, "RET\n");
+			}
+			fnHasReturned = 1;
 			return -1;
 		}
 
 		case Nreturn:
 		{
-			int r = codeGen(root->left); // compute return expression into r
-
-			// store return value into caller's reserved slot at [BP-2]
+			int r = codeGen(root->left);
 			int addr = getFreeRegister();
 			fprintf(target_file, "MOV R%d, BP\n", addr);
 			fprintf(target_file, "ADD R%d, -2\n", addr);
 			fprintf(target_file, "MOV [R%d], R%d\n", addr, r);
 			releaseRegister(addr);
 			releaseRegister(r);
+
+			// Must clean up locals and return immediately
+			for (int i = 0; i < currentFnLocalCount; i++)
+				fprintf(target_file, "POP R0\n");
+			fprintf(target_file, "POP BP\n");
+			fprintf(target_file, "RET\n");
 			return -1;
 		}
 		case Nfcall:
@@ -917,42 +933,45 @@ int codeGen(tnode* root)
 			Gsymbol* g = root->symbolTableEntry;
 			tnode* ap = root->right;
 
-			// Collect args into array for reverse push
-			tnode* cur = ap;
 			tnode* args[64];
 			int ac = 0;
+			tnode* cur = ap;
 			while (cur != NULL) {
-				tnode* argNode = (cur->nodetype == Nconnect) ? cur->right : cur;
-				args[ac++] = argNode;
-				if (cur->nodetype == Nconnect)
-					cur = cur->left;
-				else
+				if (cur->nodetype == Nconnect) {
+					args[ac++] = cur->left;   // ← was cur->right
+					cur = cur->right;         // ← was cur->left
+				} else {
+					args[ac++] = cur;
 					break;
+				}
 			}
 
-			// 1. Push args in reverse order
-			for (int i = ac - 1; i >= 0; i--) {
+			for (int i = 0; i < ac; i++) {   // ← was ac-1 down to 0
 				int r = codeGen(args[i]);
 				fprintf(target_file, "PUSH R%d\n", r);
 				releaseRegister(r);
 			}
 
 			// 2. Push empty slot for return value
-			fprintf(target_file, "PUSH R0\n");
+			int retSlot = getFreeRegister();
+			fprintf(target_file, "PUSH R%d\n", retSlot);  // push empty slot
+			releaseRegister(retSlot);
 
 			// 3. Call function
 			fprintf(target_file, "CALL F%d\n", g->flabel);
 
 			// 4. Pop return value into fresh register
 			int retReg = getFreeRegister();
-			fprintf(target_file, "POP R%d\n", retReg);
+			fprintf(target_file, "POP R%d\n", retReg);   // pop return value
 
-			// 5. Pop arguments
+			// Pop arguments (discard)
+			int tmp = getFreeRegister();
 			for (int i = 0; i < ac; i++) {
-				fprintf(target_file, "POP R0\n");
+				fprintf(target_file, "POP R%d\n", tmp);
 			}
+			releaseRegister(tmp);
 
-			return retReg;
+			return retReg;   // let Nassign handle the store
 		}
 	}
 }
@@ -965,12 +984,17 @@ void generate(tnode* root)
     fprintf(target_file, "BRKP\n");
     fprintf(target_file, "MOV SP, %d\n", stackVal-1);
     fprintf(target_file, "JMP MAIN\n");
-    if (root && root->right && root->right->left)
-        codeGen(root->right->left);
+
+    // Emit function definitions BEFORE MAIN label
+    if (root->right && root->right->left)
+        codeGen(root->right->left);   // FDefBlock
 
     fprintf(target_file, "MAIN:\n");
-    if (root && root->right && root->right->right)
-        codeGen(root->right->right);
+    tnode* mainBlock = root->right->right;
+    if (mainBlock && mainBlock->right)
+        codeGen(mainBlock->right);
+    else if (mainBlock)
+        codeGen(mainBlock);
 
     generateExit();
 }
@@ -1156,7 +1180,10 @@ struct tnode* makeVariableUseNode(char* name) {
     temp->symbolTableEntry      = Lookup(name);
 
     if (temp->localSymbolTableEntry != NULL)
+	{
         temp->type = temp->localSymbolTableEntry->type;
+		temp->localBinding = temp->localSymbolTableEntry->binding;
+	}
     else if (temp->symbolTableEntry != NULL)
         temp->type = temp->symbolTableEntry->type;
     else
@@ -1279,20 +1306,20 @@ tnode* makeFnDeclNode(tnode* id, tnode* paramlist)
 	node->varname = id->varname;
 	node->paramlist = buildParamListFromTree(paramlist);
 	node->isFunction = 1;
-	Install(id->varname, current_type, 0, 0, 1, node->paramlist);
+	Install(id->varname, current_type, 0, 0, 1, node->paramlist); //installs fn into GST
     return node;
 }
 
 struct tnode* makeFnDefNode(tnode* type, tnode* id, tnode* paramlist, tnode* ldeclblock, tnode* body) {
     Gsymbol* gEntry = Lookup(id->varname);
-    if (gEntry == NULL) {
+    if (gEntry == NULL) { //if not declared, error
         printf("Semantic Error: Function %s not declared\n", id->varname);
         exit(1);
     }
-    Param* formalParams = buildParamListFromTree(paramlist);
+    Param* formalParams = buildParamListFromTree(paramlist); //rebuilds parameter list from def's AST, verifies it matches declaration
     checkSignature(gEntry, type->type, formalParams);
 	extern int inParamList;
-	inParamList = 0;
+	inParamList = 0; //local vars positive binding
     tnode* node = (tnode*)malloc(sizeof(tnode));
     node->nodetype = Nfdef;
     node->type = type->type;
@@ -1305,19 +1332,21 @@ struct tnode* makeFnDefNode(tnode* type, tnode* id, tnode* paramlist, tnode* lde
     node->paramlist = formalParams;
     node->body = body;          // function body AST
     node->ldeclblock = ldeclblock; // local decls AST
+	node->val = countLocals(); //counts how many local vars in LST, used to allocate/deallocate stack space
+	ClearLST();
     return node;
 }
 
 struct tnode* makeParamNode(tnode* type, tnode* id) {
 	extern int inParamList;
-    inParamList = 1;
+    inParamList = 1; //negative bindings for parameters
     tnode* node = (tnode*)malloc(sizeof(tnode));
     node->nodetype = Nparam;
     node->type = type->type;
     node->varname = strdup(id->varname);
     node->left = NULL;
     node->right = NULL;
-    LInstall(node->varname, node->type);
+    LInstall(node->varname, node->type); //install into LST with BP-relative negative binding
     return node;
 }
 
@@ -1332,7 +1361,7 @@ struct tnode* makeFnCallNode(tnode* id, tnode* arglist) {
     Param* fp = entry->paramlist;
     tnode* ap = arglist;
     tnode* cur = ap;
-    while (fp != NULL && cur != NULL) {
+    while (fp != NULL && cur != NULL) { //walks each pair of formal and actual arg list simultaneously, check types match
         tnode* argNode = (cur->nodetype == Nconnect) ? cur->right : cur;
         int atype = argNode->type;
         if (argNode->symbolTableEntry)
@@ -1366,7 +1395,7 @@ struct tnode* makeFnCallNode(tnode* id, tnode* arglist) {
     return node;
 }
 
-void checkSignature(Gsymbol* gEntry, int type, Param* formalParams) {
+void checkSignature(Gsymbol* gEntry, int type, Param* formalParams) { //checks return type in def matches declaration
     if (gEntry->type != type) {
         printf("Semantic Error: Return type mismatch for function %s\n", gEntry->name);
         exit(1);

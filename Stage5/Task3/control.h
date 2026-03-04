@@ -26,6 +26,7 @@ typedef struct tnode
 	struct tnode *left,*right;
 	struct tnode* body;
 	struct tnode* ldeclblock;
+	int localBinding;
 } tnode;
 
 enum nodeTypes {

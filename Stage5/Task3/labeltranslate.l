@@ -15,6 +15,9 @@ number [0-9]+
 reg R{number}
 label_value L{number}
 label_header {label_value}:\n
+fn_label_value F{number}
+fn_label_header {fn_label_value}:\n
+main_label_header MAIN:\n
 
 %%
 
@@ -63,6 +66,36 @@ CALL[ ]{label_value}\n {
         char l[64];
         sscanf(yytext, "CALL %s", l);
         fprintf(translatedFile, "CALL %d\n", addrForLabel(l));
+    }
+}
+
+{fn_label_header} {
+    if (pass == 1) {
+        char labelName[64];
+        sscanf(yytext, "%[^:]", labelName);
+        addLabel(labelName, addr);
+    }
+}
+
+{main_label_header} {
+    if (pass == 1) {
+        addLabel("MAIN", addr);
+    }
+}
+
+CALL[ ]{fn_label_value}\n {
+    if (pass == 1) addr += 2;
+    else {
+        char l[64];
+        sscanf(yytext, "CALL %s", l);
+        fprintf(translatedFile, "CALL %d\n", addrForLabel(l));
+    }
+}
+
+JMP[ ]MAIN\n {
+    if (pass == 1) addr += 2;
+    else {
+        fprintf(translatedFile, "JMP %d\n", addrForLabel("MAIN"));
     }
 }
 

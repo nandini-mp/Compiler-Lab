@@ -15,8 +15,10 @@ decl
 enddecl
 
 begin
-    read(a);
-    read(b);
+    a=10;
+    b=20;
+    write(a);
+    write(b);
     result = sumTwo(a, b);
     write(result);
 end;

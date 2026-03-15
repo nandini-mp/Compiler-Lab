@@ -1,0 +1,34 @@
+type
+    linkedList {
+        int data;
+        linkedList next;
+    }
+endtype
+
+decl
+    linkedList head;
+    int insert(linkedList h, int val);
+enddecl
+
+int insert(linkedList h, int val) {
+decl
+    linkedList newNode;
+enddecl
+begin
+    newNode = alloc();
+    newNode.data = val;
+    newNode.next = null;
+    return newNode;
+end
+}
+
+int main() {
+decl
+    int n;
+enddecl
+begin
+    n = 42;
+    write(n);
+    return 0;
+end
+}

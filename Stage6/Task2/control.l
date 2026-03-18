@@ -52,6 +52,7 @@
 "free"      {return FREE;}
 "null"      {return NULLL;}
 "main"      {return MAIN;}
+"initialize"    { return INITIALIZE; }
 
 [a-zA-Z_][a-zA-Z0-9_]* {yylval.str = strdup(yytext); return ID;}
 [ \t]   {}

@@ -32,6 +32,7 @@
 %token DECL ENDDECL COMMA INT STR
 %token AMPERSAND MOD RETURNN
 %token TYPE ENDTYPE ALLOC FREE NULLL MAIN
+%token INITIALIZE
 %left PLUS MINUS
 %left MUL DIV MOD
 %nonassoc LT GT LE GE NE EQ
@@ -181,6 +182,8 @@ Stmt : InputStmt {$$ = $1;}
 	| Field ASSIGN ALLOC '(' ')' SEMICOLON { $$ = makeAssignNode($1, makeAllocNode(NULL)); }
 	| FREE '(' ID ')' SEMICOLON { $$ = makeFreeNode(makeVariableUseNode($3)); }
 	| FREE '(' Field ')' SEMICOLON { $$ = makeFreeNode($3); }
+	| ID ASSIGN INITIALIZE '(' ')' SEMICOLON
+    { $$ = makeAssignNode(makeVariableUseNode($1), makeInitializeNode()); }
 	;
 
 InputStmt : READ'('ID')' SEMICOLON { $$ = makeReadNode(makeVariableUseNode($3)); }

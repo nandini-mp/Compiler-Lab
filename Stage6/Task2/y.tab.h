@@ -98,7 +98,8 @@ extern int yydebug;
     FREE = 299,                    /* FREE  */
     NULLL = 300,                   /* NULLL  */
     MAIN = 301,                    /* MAIN  */
-    UNARY = 302                    /* UNARY  */
+    INITIALIZE = 302,              /* INITIALIZE  */
+    UNARY = 303                    /* UNARY  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -151,7 +152,8 @@ extern int yydebug;
 #define FREE 299
 #define NULLL 300
 #define MAIN 301
-#define UNARY 302
+#define INITIALIZE 302
+#define UNARY 303
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -162,7 +164,7 @@ union YYSTYPE
 	struct tnode *no;
 	char* str;
 
-#line 166 "y.tab.h"
+#line 168 "y.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

@@ -684,7 +684,6 @@ void genIfElseCode(tnode* root)
 	tnode* ifstmt = root->right->left;
 	tnode* elsestmt = root->right->right;
 	int reg = genConditionCode(con,elseLabel);
-	fprintf(target_file, "JZ R%d, L%d\n", reg, restLabel);
 	codeGen(ifstmt);
 	fprintf(target_file,"JMP L%d\n",restLabel);
 	fprintf(target_file,"L%d:\n",elseLabel);
@@ -941,45 +940,63 @@ int codeGen(tnode* root)
 			Gsymbol* g = root->symbolTableEntry;
 			tnode* ap = root->right;
 
+			// collect args — right-first then reverse (matches left-leaning ArgList tree)
 			tnode* args[64];
 			int ac = 0;
-			tnode* cur = ap;
-			while (cur != NULL) {
-				if (cur->nodetype == Nconnect) {
-					args[ac++] = cur->left;   // ← was cur->right
-					cur = cur->right;         // ← was cur->left
+			tnode* tmp = ap;
+			while (tmp) {
+				if (tmp->nodetype == Nconnect) {
+					args[ac++] = tmp->right;   // right = current arg at this level
+					tmp = tmp->left;           // left = earlier args
 				} else {
-					args[ac++] = cur;
+					args[ac++] = tmp;
 					break;
 				}
 			}
+			// reverse to get correct order
+			for (int i = 0; i < ac/2; i++) {
+				tnode* s = args[i];
+				args[i] = args[ac-1-i];
+				args[ac-1-i] = s;
+			}
 
-			for (int i = 0; i < ac; i++) {   // ← was ac-1 down to 0
+			// push args in order
+			// push args in REVERSE order so first arg lands at BP-3
+			for (int i = ac-1; i >= 0; i--) {
+				if (args[i]->nodetype == Nvar &&
+					args[i]->symbolTableEntry == NULL &&
+					args[i]->localSymbolTableEntry == NULL) {
+					args[i]->localSymbolTableEntry = LLookup(args[i]->varname);
+					if (args[i]->localSymbolTableEntry)
+						args[i]->localBinding = args[i]->localSymbolTableEntry->binding;
+					else
+						args[i]->symbolTableEntry = Lookup(args[i]->varname);
+				}
 				int r = codeGen(args[i]);
 				fprintf(target_file, "PUSH R%d\n", r);
 				releaseRegister(r);
 			}
 
-			// 2. Push empty slot for return value
+			// push empty return value slot
 			int retSlot = getFreeRegister();
-			fprintf(target_file, "PUSH R%d\n", retSlot);  // push empty slot
+			fprintf(target_file, "PUSH R%d\n", retSlot);
 			releaseRegister(retSlot);
 
-			// 3. Call function
+			// call function
 			fprintf(target_file, "CALL F%d\n", g->flabel);
 
-			// 4. Pop return value into fresh register
+			// pop return value
 			int retReg = getFreeRegister();
-			fprintf(target_file, "POP R%d\n", retReg);   // pop return value
+			fprintf(target_file, "POP R%d\n", retReg);
 
-			// Pop arguments (discard)
-			int tmp = getFreeRegister();
+			// pop arguments
+			int tmp2 = getFreeRegister();
 			for (int i = 0; i < ac; i++) {
-				fprintf(target_file, "POP R%d\n", tmp);
+				fprintf(target_file, "POP R%d\n", tmp2);
 			}
-			releaseRegister(tmp);
+			releaseRegister(tmp2);
 
-			return retReg;   // let Nassign handle the store
+			return retReg;
 		}
 		case Nfield:
 		{
@@ -1041,6 +1058,27 @@ int codeGen(tnode* root)
 			releaseRegister(r4);
 			return -1;
 		}
+		case Ninitialize:
+		{
+			int r1 = getFreeRegister();
+			int r2 = getFreeRegister();
+			int r3 = getFreeRegister();
+			int r4 = getFreeRegister();
+			int r5 = getFreeRegister();
+			fprintf(target_file, "MOV R%d, \"Heapset\"\n", r1);
+			fprintf(target_file, "PUSH R%d\n", r1);
+			fprintf(target_file, "PUSH R%d\n", r2);
+			fprintf(target_file, "PUSH R%d\n", r3);
+			fprintf(target_file, "PUSH R%d\n", r4);
+			fprintf(target_file, "PUSH R%d\n", r5);
+			fprintf(target_file, "CALL 0\n");
+			fprintf(target_file, "SUB SP, 5\n");
+			releaseRegister(r1);
+			releaseRegister(r2);
+			releaseRegister(r4);
+			releaseRegister(r5);
+			return r3;   // returns 0, stored into c
+		}
 	}
 }
 
@@ -1049,25 +1087,7 @@ void generate(tnode* root) {
     initializeRegisters();
     fprintf(target_file, "0\n2056\n0\n0\n0\n0\n0\n0\n");
     fprintf(target_file, "BRKP\n");
-    fprintf(target_file, "MOV SP, %d\n", stackVal-1);
-
-    // Call Heapset to initialize heap
-    int r1 = getFreeRegister();
-    int r2 = getFreeRegister();
-    int r3 = getFreeRegister();
-    int r4 = getFreeRegister();
-    int r5 = getFreeRegister();
-    fprintf(target_file, "MOV R%d, \"Heapset\"\n", r1);
-    fprintf(target_file, "PUSH R%d\n", r1);
-    fprintf(target_file, "PUSH R%d\n", r2);
-    fprintf(target_file, "PUSH R%d\n", r3);
-    fprintf(target_file, "PUSH R%d\n", r4);
-    fprintf(target_file, "PUSH R%d\n", r5);
-    fprintf(target_file, "CALL 0\n");
-    fprintf(target_file, "SUB SP, 5\n");
-    releaseRegister(r1); releaseRegister(r2); releaseRegister(r3);
-    releaseRegister(r4); releaseRegister(r5);
-
+    fprintf(target_file, "MOV SP, %d\n", stackVal);
     fprintf(target_file, "JMP MAIN\n");
     codeGen(root);
 }
@@ -1184,48 +1204,57 @@ struct tnode* makeStringNode(char* str)
 }
 
 struct tnode* makeDeclNode(struct tnode* typeNode, struct tnode* varlist) {
-    struct tnode* temp = varlist;
-	Ttable* typeEntry = typeNode->typeEntry;
-    int type = typeNode->type;
+    Ttable* typeEntry = typeNode->typeEntry;
 
-    while (temp != NULL) {
-        struct tnode* target = (temp->nodetype == Nconnect) ? temp->right : temp;
-        if (target != NULL && target->varname != NULL) {
-			if (!inLocalDecl) {
-				// Global / main declarations
-				if (target->nodetype == Nfdecl) {
-					// function declarations are already installed in makeFnDeclNode
-				} else {
-					if (Lookup(target->varname) != NULL) {
-						printf("Semantic Error: Global variable %s redeclared\n", target->varname);
-						exit(1);
-					}
-					if (target->nodetype == Nvar) {
-						Install(target->varname, typeEntry, 1, target->isPointer, 0, NULL);
-					}
-					else if (target->nodetype == Narr) {
-						int count = 0;
-						int totalSize = getDim(target->right, &count);
-						Gsymbol* entry = Install(target->varname, typeEntry, totalSize, target->isPointer, 0, NULL);
-						entry->dimension = (int*)malloc(count * sizeof(int));
-						entry->numDim = 0;
-						addDim(entry, target->right);
-					}
-				}
-			} else {
-				// Local declarations inside function
-				if (LLookup(target->varname) != NULL) {
-					printf("Semantic Error: Local variable %s redeclared\n", target->varname);
-					exit(1);
-				}
-				LInstall(target->varname, typeEntry);
-			}
-		}
-
-        if (temp->nodetype == Nconnect)
-            temp = temp->left;
-        else
+    // collect all var nodes into array (left-leaning tree, right = latest)
+    tnode* vars[64];
+    int vc = 0;
+    tnode* tmp = varlist;
+    while (tmp != NULL) {
+        if (tmp->nodetype == Nconnect) {
+            vars[vc++] = tmp->right;
+            tmp = tmp->left;
+        } else {
+            vars[vc++] = tmp;
             break;
+        }
+    }
+    // reverse to get declaration order
+    for (int i = 0; i < vc/2; i++) {
+        tnode* s = vars[i]; vars[i] = vars[vc-1-i]; vars[vc-1-i] = s;
+    }
+
+    // install in order
+    for (int i = 0; i < vc; i++) {
+        tnode* target = vars[i];
+        if (target == NULL || target->varname == NULL) continue;
+
+        if (!inLocalDecl) {
+            if (target->nodetype == Nfdecl) {
+                // already installed in makeFnDeclNode
+            } else {
+                if (Lookup(target->varname) != NULL) {
+                    printf("Semantic Error: Global variable %s redeclared\n", target->varname);
+                    exit(1);
+                }
+                if (target->nodetype == Nvar) {
+                    Install(target->varname, typeEntry, 1, target->isPointer, 0, NULL);
+                } else if (target->nodetype == Narr) {
+                    int count = 0;
+                    int totalSize = getDim(target->right, &count);
+                    Gsymbol* entry = Install(target->varname, typeEntry, totalSize, target->isPointer, 0, NULL);
+                    entry->dimension = (int*)malloc(count * sizeof(int));
+                    entry->numDim = 0;
+                    addDim(entry, target->right);
+                }
+            }
+        } else {
+            if (LLookup(target->varname) != NULL) {
+                printf("Semantic Error: Local variable %s redeclared\n", target->varname);
+                exit(1);
+            }
+            LInstall(target->varname, typeEntry);
+        }
     }
     return varlist;
 }
@@ -1442,29 +1471,48 @@ struct tnode* makeFnCallNode(tnode* id, tnode* arglist) {
         exit(1);
     }
 
-    // Check argument types and count against formal parameters
-    Param* fp = entry->paramlist;
-    tnode* ap = arglist;
-    tnode* cur = ap;
-    while (fp != NULL && cur != NULL) { //walks each pair of formal and actual arg list simultaneously, check types match
-        tnode* argNode = (cur->nodetype == Nconnect) ? cur->right : cur;
-        Ttable* atype = argNode->typeEntry;
-        if (argNode->symbolTableEntry)
-            atype = argNode->symbolTableEntry->type;
-        if (atype != fp->type) {
-            printf("Semantic Error: Argument type mismatch in call to %s\n", entry->name);
-            exit(1);
-        }
-        fp = fp->next;
-        if (cur->nodetype == Nconnect)
-            cur = cur->left;
-        else
-            cur = NULL;
-    }
-    if (fp != NULL || cur != NULL) {
-        printf("Semantic Error: Argument count mismatch in call to %s\n", entry->name);
-        exit(1);
-    }
+		// collect formal params into array
+	Param* fps[64];
+	int fpc = 0;
+	Param* fp = entry->paramlist;
+	while (fp) { fps[fpc++] = fp; fp = fp->next; }
+
+	// collect actual args into array (right-first, then reverse)
+	tnode* args[64];
+	int ac = 0;
+	tnode* tmp = arglist;
+	while (tmp) {
+		if (tmp->nodetype == Nconnect) {
+			args[ac++] = tmp->right;
+			tmp = tmp->left;
+		} else {
+			args[ac++] = tmp;
+			break;
+		}
+	}
+	// reverse args (collected right-to-left due to left-leaning tree)
+	for (int i = 0; i < ac/2; i++) {
+		tnode* s = args[i]; args[i] = args[ac-1-i]; args[ac-1-i] = s;
+	}
+
+	if (ac != fpc) {
+		printf("Semantic Error: Argument count mismatch in call to %s\n", entry->name);
+		exit(1);
+	}
+	for (int i = 0; i < ac; i++) {
+		tnode* argNode = args[i];
+		Ttable* atype = NULL;
+		if (argNode->localSymbolTableEntry != NULL)
+			atype = argNode->localSymbolTableEntry->type;
+		else if (argNode->symbolTableEntry != NULL)
+			atype = argNode->symbolTableEntry->type;
+		else
+			atype = argNode->typeEntry;
+		if (atype != fps[i]->type) {
+			printf("Semantic Error: Argument type mismatch in call to %s\n", entry->name);
+			exit(1);
+		}
+	}
 
     tnode* node = (tnode*)malloc(sizeof(tnode));
     node->nodetype = Nfcall;
@@ -1639,4 +1687,22 @@ int genFieldAddress(tnode* t) {
     // address of field = base + offset
     fprintf(target_file, "ADD R%d, %d\n", baseReg, offset);
     return baseReg;
+}
+
+tnode* makeInitializeNode() {
+    tnode* node = (tnode*)malloc(sizeof(tnode));
+    node->nodetype = Ninitialize;
+    node->type = 0;
+    node->typeEntry = TLookup("int");
+    node->left = NULL;
+    node->right = NULL;
+    node->varname = NULL;
+    node->symbolTableEntry = NULL;
+    node->localSymbolTableEntry = NULL;
+    node->isPointer = 0;
+    node->isFunction = 0;
+    node->paramlist = NULL;
+    node->body = NULL;
+    node->ldeclblock = NULL;
+    return node;
 }

@@ -32,7 +32,7 @@ typedef struct tnode
 } tnode;
 
 enum nodeTypes {
-	Nadd, Nsub, Nmul, Ndiv, Nassign, Nconnect, Nvar, Nconst, Nread, Nwrite, Nif, Nifelse, Ngt, Nlt, Nge, Nle, Nne, Neq, Nwhile, Nbreak, Ncontinue, Nrepeat, Ndowhile, Ndecl, Ntype, Nstr, Narr, Narraccess, Naddr, Nderef, Nmod, Nfdecl, Nfdef, Nparam, Nfcall, Nreturn, Nfield, Nalloc, Nfree
+	Nadd, Nsub, Nmul, Ndiv, Nassign, Nconnect, Nvar, Nconst, Nread, Nwrite, Nif, Nifelse, Ngt, Nlt, Nge, Nle, Nne, Neq, Nwhile, Nbreak, Ncontinue, Nrepeat, Ndowhile, Ndecl, Ntype, Nstr, Narr, Narraccess, Naddr, Nderef, Nmod, Nfdecl, Nfdef, Nparam, Nfcall, Nreturn, Nfield, Nalloc, Nfree, Ninitialize
 };
 
 int getVariableIndex(tnode* root);
@@ -162,5 +162,7 @@ tnode* makeFreeNode(tnode* var);
 Tfield* buildFieldList(tnode* root);
 
 int genFieldAddress(tnode* t);
+
+tnode* makeInitializeNode();
 
 #endif

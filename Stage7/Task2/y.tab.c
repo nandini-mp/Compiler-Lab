@@ -722,7 +722,7 @@ union yyalloc
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  52
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  148
+#define YYNRULES  149
 /* YYNSTATES -- Number of states.  */
 #define YYNSTATES  366
 
@@ -785,14 +785,14 @@ static const yytype_int16 yyrline[] =
      205,   208,   211,   213,   218,   219,   220,   228,   228,   229,
      230,   233,   234,   239,   238,   264,   265,   268,   269,   270,
      272,   273,   276,   279,   280,   281,   284,   287,   287,   288,
-     291,   292,   295,   295,   298,   299,   302,   305,   306,   309,
-     310,   313,   319,   320,   321,   324,   325,   326,   327,   328,
-     329,   330,   331,   332,   333,   335,   337,   338,   339,   340,
-     341,   343,   345,   347,   349,   351,   353,   357,   358,   359,
-     360,   363,   366,   367,   368,   369,   370,   373,   374,   377,
-     380,   383,   386,   387,   388,   389,   390,   391,   392,   393,
+     289,   292,   293,   296,   296,   299,   300,   303,   306,   307,
+     310,   311,   314,   320,   321,   322,   325,   326,   327,   328,
+     329,   330,   331,   332,   333,   334,   336,   338,   339,   340,
+     341,   342,   344,   346,   348,   350,   352,   354,   358,   359,
+     360,   361,   364,   367,   368,   369,   370,   371,   374,   375,
+     378,   381,   384,   387,   388,   389,   390,   391,   392,   393,
      394,   395,   396,   397,   398,   399,   400,   401,   402,   403,
-     404,   405,   406,   407,   408,   409,   411,   413,   415
+     404,   405,   406,   407,   408,   409,   410,   412,   414,   416
 };
 #endif
 
@@ -899,37 +899,37 @@ static const yytype_uint8 yydefact[] =
       61,    12,    44,    53,     0,    52,     0,     0,    14,    16,
        0,    20,    22,     0,     4,     0,     6,     0,     9,     0,
       60,    11,     0,    48,    51,     0,     0,     0,     0,     3,
-       5,     8,    65,    57,     0,    56,     0,     0,    38,     0,
+       5,     8,    65,    57,     0,    56,    70,     0,    38,     0,
        0,     2,     0,     0,    64,    65,     0,    54,     0,    67,
        0,    19,    37,     0,     0,    28,    30,    29,     0,    66,
        0,     0,     0,     0,    55,    69,     0,     0,     0,    39,
-      25,    27,     0,    63,     0,    59,    58,    72,     0,    71,
-       0,     0,     0,     0,     0,     0,     0,     0,     0,    84,
-       0,     0,     0,     0,     0,     0,     0,    83,    85,    86,
-      87,    88,    89,    93,    92,    81,    34,    65,     0,     0,
-      68,    70,     0,     0,     0,     0,   128,   130,   129,     0,
-       0,   144,     0,     0,   143,     0,     0,     0,     0,     0,
-       0,    90,    91,     0,     0,     0,     0,     0,     0,     0,
-      78,     0,    82,     0,    33,     0,     0,     0,    75,     0,
-       0,     0,     0,     0,     0,     0,    80,    40,     0,     0,
-       0,     0,   140,   139,     0,     0,     0,     0,     0,     0,
+      25,    27,     0,    63,    70,    59,    58,    73,     0,    72,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,    85,
+       0,     0,     0,     0,     0,     0,     0,    84,    86,    87,
+      88,    89,    90,    94,    93,    82,    34,    65,     0,     0,
+      68,    71,     0,     0,     0,     0,   129,   131,   130,     0,
+       0,   145,     0,     0,   144,     0,     0,     0,     0,     0,
+       0,    91,    92,     0,     0,     0,     0,     0,     0,     0,
+      79,     0,    83,     0,    33,     0,     0,     0,    76,     0,
+       0,     0,     0,     0,     0,     0,    81,    40,     0,     0,
+       0,     0,   141,   140,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,    76,     0,     0,     0,
-      42,     0,     0,    41,    77,    26,    32,     0,     0,    62,
-      73,     0,     0,     0,     0,   112,    94,     0,     0,     0,
-       0,   141,     0,    40,     0,    42,   127,   122,   123,   124,
-     125,     0,   131,   132,   133,   134,   135,   136,   126,     0,
+       0,     0,     0,     0,     0,     0,    77,     0,     0,     0,
+      42,     0,     0,    41,    78,    26,    32,     0,     0,    62,
+      74,     0,     0,     0,     0,   113,    95,     0,     0,     0,
+       0,   142,     0,    40,     0,    42,   128,   123,   124,   125,
+     126,     0,   132,   133,   134,   135,   136,   137,   127,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,   116,    65,    31,    74,     0,
-       0,     0,    79,    95,     0,     0,     0,     0,   142,     0,
-     137,     0,   115,   107,    40,     0,    42,   110,   111,    84,
-      84,     0,     0,    98,    99,   102,     0,     0,    43,     0,
-       0,    96,   100,     0,   105,     0,     0,     0,   147,     0,
-       0,   145,     0,     0,     0,     0,     0,     0,   103,     0,
-      97,    35,   101,   106,   113,     0,   148,     0,   146,     0,
-       0,    84,     0,     0,   121,   120,   104,     0,     0,   138,
-     108,     0,     0,   118,   119,     0,     0,     0,     0,     0,
-     114,     0,   117,     0,   109,    36
+       0,     0,     0,     0,     0,   117,    65,    31,    75,     0,
+       0,     0,    80,    96,     0,     0,     0,     0,   143,     0,
+     138,     0,   116,   108,    40,     0,    42,   111,   112,    85,
+      85,     0,     0,    99,   100,   103,     0,     0,    43,     0,
+       0,    97,   101,     0,   106,     0,     0,     0,   148,     0,
+       0,   146,     0,     0,     0,     0,     0,     0,   104,     0,
+      98,    35,   102,   107,   114,     0,   149,     0,   147,     0,
+       0,    85,     0,     0,   122,   121,   105,     0,     0,   139,
+     109,     0,     0,   119,   120,    70,     0,     0,     0,     0,
+     115,     0,   118,     0,   110,    36
 };
 
 /* YYPGOTO[NTERM-NUM].  */
@@ -1208,14 +1208,14 @@ static const yytype_int8 yyr1[] =
       81,    81,    81,    81,    82,    82,    82,    84,    83,    83,
       83,    85,    85,    87,    86,    88,    88,    89,    89,    89,
       90,    90,    91,    92,    92,    92,    93,    95,    94,    94,
-      96,    96,    98,    97,    99,    99,   100,   101,   101,   102,
-     102,   103,   104,   104,   104,   105,   105,   105,   105,   105,
+      94,    96,    96,    98,    97,    99,    99,   100,   101,   101,
+     102,   102,   103,   104,   104,   104,   105,   105,   105,   105,
      105,   105,   105,   105,   105,   105,   105,   105,   105,   105,
-     105,   105,   105,   105,   105,   105,   105,   106,   106,   106,
-     106,   107,   108,   108,   108,   108,   108,   109,   109,   110,
-     111,   112,   113,   113,   113,   113,   113,   113,   113,   113,
+     105,   105,   105,   105,   105,   105,   105,   105,   106,   106,
+     106,   106,   107,   108,   108,   108,   108,   108,   109,   109,
+     110,   111,   112,   113,   113,   113,   113,   113,   113,   113,
      113,   113,   113,   113,   113,   113,   113,   113,   113,   113,
-     113,   113,   113,   113,   113,   113,   113,   113,   113
+     113,   113,   113,   113,   113,   113,   113,   113,   113,   113
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
@@ -1228,14 +1228,14 @@ static const yytype_int8 yyr2[] =
        3,     3,     3,     5,     1,     1,     1,     0,     4,     2,
        0,     2,     1,     0,     4,     3,     1,     1,     4,     4,
        2,     1,     9,     3,     1,     0,     2,     0,     4,     2,
-       2,     1,     0,     4,     3,     1,     3,     4,     3,     3,
-       1,     8,     2,     1,     0,     1,     1,     1,     1,     1,
-       2,     2,     1,     1,     4,     5,     6,     6,     5,     5,
-       6,     7,     5,     6,     7,     6,     7,     5,     8,    11,
-       5,     5,     4,     7,    10,     5,     4,    10,     8,     8,
-       7,     7,     3,     3,     3,     3,     3,     3,     1,     1,
-       1,     3,     3,     3,     3,     3,     3,     4,     7,     2,
-       2,     3,     4,     1,     1,     5,     6,     5,     6
+       0,     2,     1,     0,     4,     3,     1,     3,     4,     3,
+       3,     1,     8,     2,     1,     0,     1,     1,     1,     1,
+       1,     2,     2,     1,     1,     4,     5,     6,     6,     5,
+       5,     6,     7,     5,     6,     7,     6,     7,     5,     8,
+      11,     5,     5,     4,     7,    10,     5,     4,    10,     8,
+       8,     7,     7,     3,     3,     3,     3,     3,     3,     1,
+       1,     1,     3,     3,     3,     3,     3,     3,     4,     7,
+       2,     2,     3,     4,     1,     1,     5,     6,     5,     6
 };
 
 
@@ -2197,484 +2197,490 @@ yyreduce:
 #line 2198 "y.tab.c"
     break;
 
-  case 70: /* LDeclList: LDeclList LDecl  */
-#line 291 "control.y"
-                            {(yyval.no) = makeConnectNode((yyvsp[-1].no),(yyvsp[0].no));}
+  case 70: /* LdeclBlock: %empty  */
+#line 289 "control.y"
+      {(yyval.no) = NULL;}
 #line 2204 "y.tab.c"
     break;
 
-  case 71: /* LDeclList: LDecl  */
+  case 71: /* LDeclList: LDeclList LDecl  */
 #line 292 "control.y"
-                {(yyval.no) = (yyvsp[0].no);}
+                            {(yyval.no) = makeConnectNode((yyvsp[-1].no),(yyvsp[0].no));}
 #line 2210 "y.tab.c"
     break;
 
-  case 72: /* $@8: %empty  */
-#line 295 "control.y"
-                 {current_type = (yyvsp[0].no)->typeEntry;}
+  case 72: /* LDeclList: LDecl  */
+#line 293 "control.y"
+                {(yyval.no) = (yyvsp[0].no);}
 #line 2216 "y.tab.c"
     break;
 
-  case 73: /* LDecl: TypeName $@8 IdList SEMICOLON  */
-#line 295 "control.y"
-                                                                  {(yyval.no) = makeDeclNode((yyvsp[-3].no),(yyvsp[-1].no));}
+  case 73: /* $@8: %empty  */
+#line 296 "control.y"
+                 {current_type = (yyvsp[0].no)->typeEntry;}
 #line 2222 "y.tab.c"
     break;
 
-  case 74: /* IdList: IdList COMMA ID  */
-#line 298 "control.y"
-                         {(yyval.no) = makeConnectNode((yyvsp[-2].no),makeVariableNode((yyvsp[0].str)));}
+  case 74: /* LDecl: TypeName $@8 IdList SEMICOLON  */
+#line 296 "control.y"
+                                                                  {(yyval.no) = makeDeclNode((yyvsp[-3].no),(yyvsp[-1].no));}
 #line 2228 "y.tab.c"
     break;
 
-  case 75: /* IdList: ID  */
+  case 75: /* IdList: IdList COMMA ID  */
 #line 299 "control.y"
-             {(yyval.no) = makeVariableNode((yyvsp[0].str));}
+                         {(yyval.no) = makeConnectNode((yyvsp[-2].no),makeVariableNode((yyvsp[0].str)));}
 #line 2234 "y.tab.c"
     break;
 
-  case 76: /* Retstmt: RETURNN expr SEMICOLON  */
-#line 302 "control.y"
-                                 { (yyval.no) = makeReturnNode((yyvsp[-1].no)); }
+  case 76: /* IdList: ID  */
+#line 300 "control.y"
+             {(yyval.no) = makeVariableNode((yyvsp[0].str));}
 #line 2240 "y.tab.c"
     break;
 
-  case 77: /* Body: BEGINN Slist Retstmt ENDD  */
-#line 305 "control.y"
-                                 { (yyval.no) = makeConnectNode((yyvsp[-2].no), (yyvsp[-1].no)); }
+  case 77: /* Retstmt: RETURNN expr SEMICOLON  */
+#line 303 "control.y"
+                                 { (yyval.no) = makeReturnNode((yyvsp[-1].no)); }
 #line 2246 "y.tab.c"
     break;
 
-  case 78: /* Body: BEGINN Retstmt ENDD  */
+  case 78: /* Body: BEGINN Slist Retstmt ENDD  */
 #line 306 "control.y"
-                                 { (yyval.no) = (yyvsp[-1].no); }
+                                 { (yyval.no) = makeConnectNode((yyvsp[-2].no), (yyvsp[-1].no)); }
 #line 2252 "y.tab.c"
     break;
 
-  case 79: /* ArgList: ArgList COMMA expr  */
-#line 309 "control.y"
-                             { (yyval.no) = makeConnectNode((yyvsp[-2].no), (yyvsp[0].no)); }
+  case 79: /* Body: BEGINN Retstmt ENDD  */
+#line 307 "control.y"
+                                 { (yyval.no) = (yyvsp[-1].no); }
 #line 2258 "y.tab.c"
     break;
 
-  case 80: /* ArgList: expr  */
+  case 80: /* ArgList: ArgList COMMA expr  */
 #line 310 "control.y"
-               { (yyval.no) = (yyvsp[0].no); }
+                             { (yyval.no) = makeConnectNode((yyvsp[-2].no), (yyvsp[0].no)); }
 #line 2264 "y.tab.c"
     break;
 
-  case 81: /* MainBlock: INT MAIN '(' ')' '{' LdeclBlock Body '}'  */
-#line 314 "control.y"
+  case 81: /* ArgList: expr  */
+#line 311 "control.y"
+               { (yyval.no) = (yyvsp[0].no); }
+#line 2270 "y.tab.c"
+    break;
+
+  case 82: /* MainBlock: INT MAIN '(' ')' '{' LdeclBlock Body '}'  */
+#line 315 "control.y"
             {
                 (yyval.no) = makeFnDefNode(makeTypeNode(0), makeVariableNode("main"), NULL, (yyvsp[-2].no), (yyvsp[-1].no));
             }
-#line 2272 "y.tab.c"
-    break;
-
-  case 82: /* Slist: Slist Stmt  */
-#line 319 "control.y"
-                   {(yyval.no) = makeConnectNode((yyvsp[-1].no),(yyvsp[0].no));}
 #line 2278 "y.tab.c"
     break;
 
-  case 83: /* Slist: Stmt  */
+  case 83: /* Slist: Slist Stmt  */
 #line 320 "control.y"
-             {(yyval.no) = (yyvsp[0].no);}
+                   {(yyval.no) = makeConnectNode((yyvsp[-1].no),(yyvsp[0].no));}
 #line 2284 "y.tab.c"
     break;
 
-  case 84: /* Slist: %empty  */
+  case 84: /* Slist: Stmt  */
 #line 321 "control.y"
-            {(yyval.no)=NULL;}
+             {(yyval.no) = (yyvsp[0].no);}
 #line 2290 "y.tab.c"
     break;
 
-  case 85: /* Stmt: InputStmt  */
-#line 324 "control.y"
-                 {(yyval.no) = (yyvsp[0].no);}
+  case 85: /* Slist: %empty  */
+#line 322 "control.y"
+            {(yyval.no)=NULL;}
 #line 2296 "y.tab.c"
     break;
 
-  case 86: /* Stmt: OutputStmt  */
+  case 86: /* Stmt: InputStmt  */
 #line 325 "control.y"
                  {(yyval.no) = (yyvsp[0].no);}
 #line 2302 "y.tab.c"
     break;
 
-  case 87: /* Stmt: AsgStmt  */
+  case 87: /* Stmt: OutputStmt  */
 #line 326 "control.y"
-                  {(yyval.no) = (yyvsp[0].no);}
+                 {(yyval.no) = (yyvsp[0].no);}
 #line 2308 "y.tab.c"
     break;
 
-  case 88: /* Stmt: IfStmt  */
+  case 88: /* Stmt: AsgStmt  */
 #line 327 "control.y"
-                 {(yyval.no) = (yyvsp[0].no);}
+                  {(yyval.no) = (yyvsp[0].no);}
 #line 2314 "y.tab.c"
     break;
 
-  case 89: /* Stmt: WhileStmt  */
+  case 89: /* Stmt: IfStmt  */
 #line 328 "control.y"
-                    {(yyval.no) = (yyvsp[0].no);}
+                 {(yyval.no) = (yyvsp[0].no);}
 #line 2320 "y.tab.c"
     break;
 
-  case 90: /* Stmt: BREAKK SEMICOLON  */
+  case 90: /* Stmt: WhileStmt  */
 #line 329 "control.y"
-                           {(yyval.no) = makeBreakNode();}
+                    {(yyval.no) = (yyvsp[0].no);}
 #line 2326 "y.tab.c"
     break;
 
-  case 91: /* Stmt: CONTINUEE SEMICOLON  */
+  case 91: /* Stmt: BREAKK SEMICOLON  */
 #line 330 "control.y"
-                              {(yyval.no) = makeContinueNode();}
+                           {(yyval.no) = makeBreakNode();}
 #line 2332 "y.tab.c"
     break;
 
-  case 92: /* Stmt: DoWhileStmt  */
+  case 92: /* Stmt: CONTINUEE SEMICOLON  */
 #line 331 "control.y"
-                      {(yyval.no) = (yyvsp[0].no);}
+                              {(yyval.no) = makeContinueNode();}
 #line 2338 "y.tab.c"
     break;
 
-  case 93: /* Stmt: RepeatStmt  */
+  case 93: /* Stmt: DoWhileStmt  */
 #line 332 "control.y"
-                     {(yyval.no) = (yyvsp[0].no);}
+                      {(yyval.no) = (yyvsp[0].no);}
 #line 2344 "y.tab.c"
     break;
 
-  case 94: /* Stmt: ID '(' ')' SEMICOLON  */
-#line 334 "control.y"
-          { (yyval.no) = makeFnCallNode(makeVariableUseNode((yyvsp[-3].str)), NULL); }
+  case 94: /* Stmt: RepeatStmt  */
+#line 333 "control.y"
+                     {(yyval.no) = (yyvsp[0].no);}
 #line 2350 "y.tab.c"
     break;
 
-  case 95: /* Stmt: ID '(' ArgList ')' SEMICOLON  */
-#line 336 "control.y"
-          { (yyval.no) = makeFnCallNode(makeVariableUseNode((yyvsp[-4].str)), (yyvsp[-2].no)); }
+  case 95: /* Stmt: ID '(' ')' SEMICOLON  */
+#line 335 "control.y"
+          { (yyval.no) = makeFnCallNode(makeVariableUseNode((yyvsp[-3].str)), NULL); }
 #line 2356 "y.tab.c"
     break;
 
-  case 96: /* Stmt: ID ASSIGN ALLOC '(' ')' SEMICOLON  */
+  case 96: /* Stmt: ID '(' ArgList ')' SEMICOLON  */
 #line 337 "control.y"
-                                            { (yyval.no) = makeAssignNode(makeVariableUseNode((yyvsp[-5].str)), makeAllocNode(NULL)); }
+          { (yyval.no) = makeFnCallNode(makeVariableUseNode((yyvsp[-4].str)), (yyvsp[-2].no)); }
 #line 2362 "y.tab.c"
     break;
 
-  case 97: /* Stmt: Field ASSIGN ALLOC '(' ')' SEMICOLON  */
+  case 97: /* Stmt: ID ASSIGN ALLOC '(' ')' SEMICOLON  */
 #line 338 "control.y"
-                                               { (yyval.no) = makeAssignNode((yyvsp[-5].no), makeAllocNode(NULL)); }
+                                            { (yyval.no) = makeAssignNode(makeVariableUseNode((yyvsp[-5].str)), makeAllocNode(NULL)); }
 #line 2368 "y.tab.c"
     break;
 
-  case 98: /* Stmt: FREE '(' ID ')' SEMICOLON  */
+  case 98: /* Stmt: Field ASSIGN ALLOC '(' ')' SEMICOLON  */
 #line 339 "control.y"
-                                    { (yyval.no) = makeFreeNode(makeVariableUseNode((yyvsp[-2].str))); }
+                                               { (yyval.no) = makeAssignNode((yyvsp[-5].no), makeAllocNode(NULL)); }
 #line 2374 "y.tab.c"
     break;
 
-  case 99: /* Stmt: FREE '(' Field ')' SEMICOLON  */
+  case 99: /* Stmt: FREE '(' ID ')' SEMICOLON  */
 #line 340 "control.y"
-                                       { (yyval.no) = makeFreeNode((yyvsp[-2].no)); }
+                                    { (yyval.no) = makeFreeNode(makeVariableUseNode((yyvsp[-2].str))); }
 #line 2380 "y.tab.c"
     break;
 
-  case 100: /* Stmt: ID ASSIGN INITIALIZE '(' ')' SEMICOLON  */
-#line 342 "control.y"
-    { (yyval.no) = makeAssignNode(makeVariableUseNode((yyvsp[-5].str)), makeInitializeNode()); }
+  case 100: /* Stmt: FREE '(' Field ')' SEMICOLON  */
+#line 341 "control.y"
+                                       { (yyval.no) = makeFreeNode((yyvsp[-2].no)); }
 #line 2386 "y.tab.c"
     break;
 
-  case 101: /* Stmt: ID ASSIGN NEW '(' ID ')' SEMICOLON  */
-#line 344 "control.y"
-        { (yyval.no) = makeAssignNode(makeVariableUseNode((yyvsp[-6].str)), makeNewNode((yyvsp[-2].str))); }
+  case 101: /* Stmt: ID ASSIGN INITIALIZE '(' ')' SEMICOLON  */
+#line 343 "control.y"
+    { (yyval.no) = makeAssignNode(makeVariableUseNode((yyvsp[-5].str)), makeInitializeNode()); }
 #line 2392 "y.tab.c"
     break;
 
-  case 102: /* Stmt: DELETE '(' ID ')' SEMICOLON  */
-#line 346 "control.y"
-        { (yyval.no) = makeDeleteNode(makeVariableUseNode((yyvsp[-2].str))); }
+  case 102: /* Stmt: ID ASSIGN NEW '(' ID ')' SEMICOLON  */
+#line 345 "control.y"
+        { (yyval.no) = makeAssignNode(makeVariableUseNode((yyvsp[-6].str)), makeNewNode((yyvsp[-2].str))); }
 #line 2398 "y.tab.c"
     break;
 
-  case 103: /* Stmt: SELF '.' ID '(' ')' SEMICOLON  */
-#line 348 "control.y"
-        { (yyval.no) = makeSelfMethodCallNode((yyvsp[-3].str), NULL); }
+  case 103: /* Stmt: DELETE '(' ID ')' SEMICOLON  */
+#line 347 "control.y"
+        { (yyval.no) = makeDeleteNode(makeVariableUseNode((yyvsp[-2].str))); }
 #line 2404 "y.tab.c"
     break;
 
-  case 104: /* Stmt: SELF '.' ID '(' ArgList ')' SEMICOLON  */
-#line 350 "control.y"
-        { (yyval.no) = makeSelfMethodCallNode((yyvsp[-4].str), (yyvsp[-2].no)); }
+  case 104: /* Stmt: SELF '.' ID '(' ')' SEMICOLON  */
+#line 349 "control.y"
+        { (yyval.no) = makeSelfMethodCallNode((yyvsp[-3].str), NULL); }
 #line 2410 "y.tab.c"
     break;
 
-  case 105: /* Stmt: ID '.' ID '(' ')' SEMICOLON  */
-#line 352 "control.y"
-        { (yyval.no) = makeObjMethodCallNode(makeVariableUseNode((yyvsp[-5].str)), (yyvsp[-3].str), NULL); }
+  case 105: /* Stmt: SELF '.' ID '(' ArgList ')' SEMICOLON  */
+#line 351 "control.y"
+        { (yyval.no) = makeSelfMethodCallNode((yyvsp[-4].str), (yyvsp[-2].no)); }
 #line 2416 "y.tab.c"
     break;
 
-  case 106: /* Stmt: ID '.' ID '(' ArgList ')' SEMICOLON  */
-#line 354 "control.y"
-        { (yyval.no) = makeObjMethodCallNode(makeVariableUseNode((yyvsp[-6].str)), (yyvsp[-4].str), (yyvsp[-2].no)); }
+  case 106: /* Stmt: ID '.' ID '(' ')' SEMICOLON  */
+#line 353 "control.y"
+        { (yyval.no) = makeObjMethodCallNode(makeVariableUseNode((yyvsp[-5].str)), (yyvsp[-3].str), NULL); }
 #line 2422 "y.tab.c"
     break;
 
-  case 107: /* InputStmt: READ '(' ID ')' SEMICOLON  */
-#line 357 "control.y"
-                                   { (yyval.no) = makeReadNode(makeVariableUseNode((yyvsp[-2].str))); }
+  case 107: /* Stmt: ID '.' ID '(' ArgList ')' SEMICOLON  */
+#line 355 "control.y"
+        { (yyval.no) = makeObjMethodCallNode(makeVariableUseNode((yyvsp[-6].str)), (yyvsp[-4].str), (yyvsp[-2].no)); }
 #line 2428 "y.tab.c"
     break;
 
-  case 108: /* InputStmt: READ '(' ID '[' expr ']' ')' SEMICOLON  */
+  case 108: /* InputStmt: READ '(' ID ')' SEMICOLON  */
 #line 358 "control.y"
-                                           { (yyval.no) = makeReadNode(makeArrayAccessNode(makeVariableUseNode((yyvsp[-5].str)),(yyvsp[-3].no))); }
+                                   { (yyval.no) = makeReadNode(makeVariableUseNode((yyvsp[-2].str))); }
 #line 2434 "y.tab.c"
     break;
 
-  case 109: /* InputStmt: READ '(' ID '[' expr ']' '[' expr ']' ')' SEMICOLON  */
+  case 109: /* InputStmt: READ '(' ID '[' expr ']' ')' SEMICOLON  */
 #line 359 "control.y"
-                                                     { (yyval.no) = makeReadNode(makeArrayAccessNode(makeVariableUseNode((yyvsp[-8].str)),makeConnectNode((yyvsp[-6].no),(yyvsp[-3].no)))); }
+                                           { (yyval.no) = makeReadNode(makeArrayAccessNode(makeVariableUseNode((yyvsp[-5].str)),(yyvsp[-3].no))); }
 #line 2440 "y.tab.c"
     break;
 
-  case 110: /* InputStmt: READ '(' Field ')' SEMICOLON  */
+  case 110: /* InputStmt: READ '(' ID '[' expr ']' '[' expr ']' ')' SEMICOLON  */
 #line 360 "control.y"
-                                       { (yyval.no) = makeReadNode((yyvsp[-2].no)); }
+                                                     { (yyval.no) = makeReadNode(makeArrayAccessNode(makeVariableUseNode((yyvsp[-8].str)),makeConnectNode((yyvsp[-6].no),(yyvsp[-3].no)))); }
 #line 2446 "y.tab.c"
     break;
 
-  case 111: /* OutputStmt: WRITE '(' expr ')' SEMICOLON  */
-#line 363 "control.y"
-                                       {(yyval.no) = makeWriteNode((yyvsp[-2].no));}
+  case 111: /* InputStmt: READ '(' Field ')' SEMICOLON  */
+#line 361 "control.y"
+                                       { (yyval.no) = makeReadNode((yyvsp[-2].no)); }
 #line 2452 "y.tab.c"
     break;
 
-  case 112: /* AsgStmt: ID ASSIGN expr SEMICOLON  */
-#line 366 "control.y"
-                                   { (yyval.no) = makeAssignNode(makeVariableUseNode((yyvsp[-3].str)), (yyvsp[-1].no)); }
+  case 112: /* OutputStmt: WRITE '(' expr ')' SEMICOLON  */
+#line 364 "control.y"
+                                       {(yyval.no) = makeWriteNode((yyvsp[-2].no));}
 #line 2458 "y.tab.c"
     break;
 
-  case 113: /* AsgStmt: ID '[' expr ']' ASSIGN expr SEMICOLON  */
+  case 113: /* AsgStmt: ID ASSIGN expr SEMICOLON  */
 #line 367 "control.y"
-                                              { (yyval.no) = makeAssignNode(makeArrayAccessNode(makeVariableUseNode((yyvsp[-6].str)), (yyvsp[-4].no)), (yyvsp[-1].no)); }
+                                   { (yyval.no) = makeAssignNode(makeVariableUseNode((yyvsp[-3].str)), (yyvsp[-1].no)); }
 #line 2464 "y.tab.c"
     break;
 
-  case 114: /* AsgStmt: ID '[' expr ']' '[' expr ']' ASSIGN expr SEMICOLON  */
+  case 114: /* AsgStmt: ID '[' expr ']' ASSIGN expr SEMICOLON  */
 #line 368 "control.y"
-                                                        { (yyval.no) = makeAssignNode(makeArrayAccessNode(makeVariableUseNode((yyvsp[-9].str)), makeConnectNode((yyvsp[-7].no),(yyvsp[-4].no))), (yyvsp[-1].no)); }
+                                              { (yyval.no) = makeAssignNode(makeArrayAccessNode(makeVariableUseNode((yyvsp[-6].str)), (yyvsp[-4].no)), (yyvsp[-1].no)); }
 #line 2470 "y.tab.c"
     break;
 
-  case 115: /* AsgStmt: MUL expr ASSIGN expr SEMICOLON  */
+  case 115: /* AsgStmt: ID '[' expr ']' '[' expr ']' ASSIGN expr SEMICOLON  */
 #line 369 "control.y"
-                                         { (yyval.no) = makeAssignNode(makeDerefNode((yyvsp[-3].no)), (yyvsp[-1].no)); }
+                                                        { (yyval.no) = makeAssignNode(makeArrayAccessNode(makeVariableUseNode((yyvsp[-9].str)), makeConnectNode((yyvsp[-7].no),(yyvsp[-4].no))), (yyvsp[-1].no)); }
 #line 2476 "y.tab.c"
     break;
 
-  case 116: /* AsgStmt: Field ASSIGN expr SEMICOLON  */
+  case 116: /* AsgStmt: MUL expr ASSIGN expr SEMICOLON  */
 #line 370 "control.y"
-                                      { (yyval.no) = makeAssignNode((yyvsp[-3].no), (yyvsp[-1].no)); }
+                                         { (yyval.no) = makeAssignNode(makeDerefNode((yyvsp[-3].no)), (yyvsp[-1].no)); }
 #line 2482 "y.tab.c"
     break;
 
-  case 117: /* IfStmt: IF '(' expr ')' THEN Slist ELSE Slist ENDIF SEMICOLON  */
-#line 373 "control.y"
-                                                             {(yyval.no) = makeIfElseNode((yyvsp[-7].no),(yyvsp[-4].no),(yyvsp[-2].no));}
+  case 117: /* AsgStmt: Field ASSIGN expr SEMICOLON  */
+#line 371 "control.y"
+                                      { (yyval.no) = makeAssignNode((yyvsp[-3].no), (yyvsp[-1].no)); }
 #line 2488 "y.tab.c"
     break;
 
-  case 118: /* IfStmt: IF '(' expr ')' THEN Slist ENDIF SEMICOLON  */
+  case 118: /* IfStmt: IF '(' expr ')' THEN Slist ELSE Slist ENDIF SEMICOLON  */
 #line 374 "control.y"
-                                                   {(yyval.no) = makeIfNode((yyvsp[-5].no),(yyvsp[-2].no));}
+                                                             {(yyval.no) = makeIfElseNode((yyvsp[-7].no),(yyvsp[-4].no),(yyvsp[-2].no));}
 #line 2494 "y.tab.c"
     break;
 
-  case 119: /* WhileStmt: WHILE '(' expr ')' DO Slist ENDWHILE SEMICOLON  */
-#line 377 "control.y"
-                                                         {(yyval.no) = makeWhileNode((yyvsp[-5].no),(yyvsp[-2].no));}
+  case 119: /* IfStmt: IF '(' expr ')' THEN Slist ENDIF SEMICOLON  */
+#line 375 "control.y"
+                                                   {(yyval.no) = makeIfNode((yyvsp[-5].no),(yyvsp[-2].no));}
 #line 2500 "y.tab.c"
     break;
 
-  case 120: /* RepeatStmt: REPEATT Slist UNTILL '(' expr ')' SEMICOLON  */
-#line 380 "control.y"
-                                                            {(yyval.no)=makeRepeatNode((yyvsp[-5].no),(yyvsp[-2].no));}
+  case 120: /* WhileStmt: WHILE '(' expr ')' DO Slist ENDWHILE SEMICOLON  */
+#line 378 "control.y"
+                                                         {(yyval.no) = makeWhileNode((yyvsp[-5].no),(yyvsp[-2].no));}
 #line 2506 "y.tab.c"
     break;
 
-  case 121: /* DoWhileStmt: DO Slist WHILE '(' expr ')' SEMICOLON  */
-#line 383 "control.y"
-                                                        {(yyval.no)=makeDoWhileNode((yyvsp[-5].no),(yyvsp[-2].no));}
+  case 121: /* RepeatStmt: REPEATT Slist UNTILL '(' expr ')' SEMICOLON  */
+#line 381 "control.y"
+                                                            {(yyval.no)=makeRepeatNode((yyvsp[-5].no),(yyvsp[-2].no));}
 #line 2512 "y.tab.c"
     break;
 
-  case 122: /* expr: expr PLUS expr  */
-#line 386 "control.y"
-                                        {(yyval.no) = makeOperatorNode('+',(yyvsp[-2].no),(yyvsp[0].no));}
+  case 122: /* DoWhileStmt: DO Slist WHILE '(' expr ')' SEMICOLON  */
+#line 384 "control.y"
+                                                        {(yyval.no)=makeDoWhileNode((yyvsp[-5].no),(yyvsp[-2].no));}
 #line 2518 "y.tab.c"
     break;
 
-  case 123: /* expr: expr MINUS expr  */
+  case 123: /* expr: expr PLUS expr  */
 #line 387 "control.y"
-                                        {(yyval.no) = makeOperatorNode('-',(yyvsp[-2].no),(yyvsp[0].no));}
+                                        {(yyval.no) = makeOperatorNode('+',(yyvsp[-2].no),(yyvsp[0].no));}
 #line 2524 "y.tab.c"
     break;
 
-  case 124: /* expr: expr MUL expr  */
+  case 124: /* expr: expr MINUS expr  */
 #line 388 "control.y"
-                                                {(yyval.no) = makeOperatorNode('*',(yyvsp[-2].no),(yyvsp[0].no));}
+                                        {(yyval.no) = makeOperatorNode('-',(yyvsp[-2].no),(yyvsp[0].no));}
 #line 2530 "y.tab.c"
     break;
 
-  case 125: /* expr: expr DIV expr  */
+  case 125: /* expr: expr MUL expr  */
 #line 389 "control.y"
-                                                {(yyval.no) = makeOperatorNode('/',(yyvsp[-2].no),(yyvsp[0].no));}
+                                                {(yyval.no) = makeOperatorNode('*',(yyvsp[-2].no),(yyvsp[0].no));}
 #line 2536 "y.tab.c"
     break;
 
-  case 126: /* expr: expr MOD expr  */
+  case 126: /* expr: expr DIV expr  */
 #line 390 "control.y"
-                                                {(yyval.no) = makeOperatorNode('%',(yyvsp[-2].no),(yyvsp[0].no));}
+                                                {(yyval.no) = makeOperatorNode('/',(yyvsp[-2].no),(yyvsp[0].no));}
 #line 2542 "y.tab.c"
     break;
 
-  case 127: /* expr: '(' expr ')'  */
+  case 127: /* expr: expr MOD expr  */
 #line 391 "control.y"
-                                                {(yyval.no) = (yyvsp[-1].no);}
+                                                {(yyval.no) = makeOperatorNode('%',(yyvsp[-2].no),(yyvsp[0].no));}
 #line 2548 "y.tab.c"
     break;
 
-  case 128: /* expr: NUM  */
+  case 128: /* expr: '(' expr ')'  */
 #line 392 "control.y"
-                                                        {(yyval.no) = (yyvsp[0].no);}
+                                                {(yyval.no) = (yyvsp[-1].no);}
 #line 2554 "y.tab.c"
     break;
 
-  case 129: /* expr: ID  */
+  case 129: /* expr: NUM  */
 #line 393 "control.y"
-                                                        {(yyval.no) = makeVariableUseNode((yyvsp[0].str));}
+                                                        {(yyval.no) = (yyvsp[0].no);}
 #line 2560 "y.tab.c"
     break;
 
-  case 130: /* expr: STRINGG  */
+  case 130: /* expr: ID  */
 #line 394 "control.y"
-                                                        {(yyval.no) = (yyvsp[0].no);}
+                                                        {(yyval.no) = makeVariableUseNode((yyvsp[0].str));}
 #line 2566 "y.tab.c"
     break;
 
-  case 131: /* expr: expr LT expr  */
+  case 131: /* expr: STRINGG  */
 #line 395 "control.y"
-                                                {(yyval.no) = makeCOperatorNode('<',(yyvsp[-2].no),(yyvsp[0].no));}
+                                                        {(yyval.no) = (yyvsp[0].no);}
 #line 2572 "y.tab.c"
     break;
 
-  case 132: /* expr: expr GT expr  */
+  case 132: /* expr: expr LT expr  */
 #line 396 "control.y"
-                                {(yyval.no) = makeCOperatorNode('>',(yyvsp[-2].no),(yyvsp[0].no));}
+                                                {(yyval.no) = makeCOperatorNode('<',(yyvsp[-2].no),(yyvsp[0].no));}
 #line 2578 "y.tab.c"
     break;
 
-  case 133: /* expr: expr LE expr  */
+  case 133: /* expr: expr GT expr  */
 #line 397 "control.y"
-                                {(yyval.no) = makeCOperatorNode('L',(yyvsp[-2].no),(yyvsp[0].no));}
+                                {(yyval.no) = makeCOperatorNode('>',(yyvsp[-2].no),(yyvsp[0].no));}
 #line 2584 "y.tab.c"
     break;
 
-  case 134: /* expr: expr GE expr  */
+  case 134: /* expr: expr LE expr  */
 #line 398 "control.y"
-                                {(yyval.no) = makeCOperatorNode('G',(yyvsp[-2].no),(yyvsp[0].no));}
+                                {(yyval.no) = makeCOperatorNode('L',(yyvsp[-2].no),(yyvsp[0].no));}
 #line 2590 "y.tab.c"
     break;
 
-  case 135: /* expr: expr NE expr  */
+  case 135: /* expr: expr GE expr  */
 #line 399 "control.y"
-                                {(yyval.no) = makeCOperatorNode('N',(yyvsp[-2].no),(yyvsp[0].no));}
+                                {(yyval.no) = makeCOperatorNode('G',(yyvsp[-2].no),(yyvsp[0].no));}
 #line 2596 "y.tab.c"
     break;
 
-  case 136: /* expr: expr EQ expr  */
+  case 136: /* expr: expr NE expr  */
 #line 400 "control.y"
-                                {(yyval.no) = makeCOperatorNode('E',(yyvsp[-2].no),(yyvsp[0].no));}
+                                {(yyval.no) = makeCOperatorNode('N',(yyvsp[-2].no),(yyvsp[0].no));}
 #line 2602 "y.tab.c"
     break;
 
-  case 137: /* expr: ID '[' expr ']'  */
+  case 137: /* expr: expr EQ expr  */
 #line 401 "control.y"
-                                                {(yyval.no) = makeArrayAccessNode(makeVariableUseNode((yyvsp[-3].str)), (yyvsp[-1].no));}
+                                {(yyval.no) = makeCOperatorNode('E',(yyvsp[-2].no),(yyvsp[0].no));}
 #line 2608 "y.tab.c"
     break;
 
-  case 138: /* expr: ID '[' expr ']' '[' expr ']'  */
+  case 138: /* expr: ID '[' expr ']'  */
 #line 402 "control.y"
-                                        {(yyval.no) = makeArrayAccessNode(makeVariableUseNode((yyvsp[-6].str)), makeConnectNode((yyvsp[-4].no),(yyvsp[-1].no)));}
+                                                {(yyval.no) = makeArrayAccessNode(makeVariableUseNode((yyvsp[-3].str)), (yyvsp[-1].no));}
 #line 2614 "y.tab.c"
     break;
 
-  case 139: /* expr: AMPERSAND ID  */
+  case 139: /* expr: ID '[' expr ']' '[' expr ']'  */
 #line 403 "control.y"
-                                                {(yyval.no) = makeAddrNode((tnode*)makeVariableUseNode((yyvsp[0].str)));}
+                                        {(yyval.no) = makeArrayAccessNode(makeVariableUseNode((yyvsp[-6].str)), makeConnectNode((yyvsp[-4].no),(yyvsp[-1].no)));}
 #line 2620 "y.tab.c"
     break;
 
-  case 140: /* expr: MUL expr  */
+  case 140: /* expr: AMPERSAND ID  */
 #line 404 "control.y"
-                                { (yyval.no) = makeDerefNode((yyvsp[0].no)); }
+                                                {(yyval.no) = makeAddrNode((tnode*)makeVariableUseNode((yyvsp[0].str)));}
 #line 2626 "y.tab.c"
     break;
 
-  case 141: /* expr: ID '(' ')'  */
+  case 141: /* expr: MUL expr  */
 #line 405 "control.y"
-                                                        {(yyval.no) = makeFnCallNode(makeVariableUseNode((yyvsp[-2].str)),NULL);}
+                                { (yyval.no) = makeDerefNode((yyvsp[0].no)); }
 #line 2632 "y.tab.c"
     break;
 
-  case 142: /* expr: ID '(' ArgList ')'  */
+  case 142: /* expr: ID '(' ')'  */
 #line 406 "control.y"
-                                                {(yyval.no) = makeFnCallNode(makeVariableUseNode((yyvsp[-3].str)),(yyvsp[-1].no));}
+                                                        {(yyval.no) = makeFnCallNode(makeVariableUseNode((yyvsp[-2].str)),NULL);}
 #line 2638 "y.tab.c"
     break;
 
-  case 143: /* expr: Field  */
+  case 143: /* expr: ID '(' ArgList ')'  */
 #line 407 "control.y"
-                  { (yyval.no) = (yyvsp[0].no); }
+                                                {(yyval.no) = makeFnCallNode(makeVariableUseNode((yyvsp[-3].str)),(yyvsp[-1].no));}
 #line 2644 "y.tab.c"
     break;
 
-  case 144: /* expr: NULLL  */
+  case 144: /* expr: Field  */
 #line 408 "control.y"
-                 { (yyval.no) = makeConstantNode(0); (yyval.no)->typeEntry = TLookup("null"); }
+                  { (yyval.no) = (yyvsp[0].no); }
 #line 2650 "y.tab.c"
     break;
 
-  case 145: /* expr: SELF '.' ID '(' ')'  */
-#line 410 "control.y"
-        { (yyval.no) = makeSelfMethodCallNode((yyvsp[-2].str), NULL); }
+  case 145: /* expr: NULLL  */
+#line 409 "control.y"
+                 { (yyval.no) = makeConstantNode(0); (yyval.no)->typeEntry = TLookup("null"); }
 #line 2656 "y.tab.c"
     break;
 
-  case 146: /* expr: SELF '.' ID '(' ArgList ')'  */
-#line 412 "control.y"
-        { (yyval.no) = makeSelfMethodCallNode((yyvsp[-3].str), (yyvsp[-1].no)); }
+  case 146: /* expr: SELF '.' ID '(' ')'  */
+#line 411 "control.y"
+        { (yyval.no) = makeSelfMethodCallNode((yyvsp[-2].str), NULL); }
 #line 2662 "y.tab.c"
     break;
 
-  case 147: /* expr: ID '.' ID '(' ')'  */
-#line 414 "control.y"
-        { (yyval.no) = makeObjMethodCallNode(makeVariableUseNode((yyvsp[-4].str)), (yyvsp[-2].str), NULL); }
+  case 147: /* expr: SELF '.' ID '(' ArgList ')'  */
+#line 413 "control.y"
+        { (yyval.no) = makeSelfMethodCallNode((yyvsp[-3].str), (yyvsp[-1].no)); }
 #line 2668 "y.tab.c"
     break;
 
-  case 148: /* expr: ID '.' ID '(' ArgList ')'  */
+  case 148: /* expr: ID '.' ID '(' ')'  */
 #line 415 "control.y"
-                                { (yyval.no) = makeObjMethodCallNode(makeVariableUseNode((yyvsp[-5].str)), (yyvsp[-3].str), (yyvsp[-1].no));}
+        { (yyval.no) = makeObjMethodCallNode(makeVariableUseNode((yyvsp[-4].str)), (yyvsp[-2].str), NULL); }
 #line 2674 "y.tab.c"
     break;
 
+  case 149: /* expr: ID '.' ID '(' ArgList ')'  */
+#line 416 "control.y"
+                                { (yyval.no) = makeObjMethodCallNode(makeVariableUseNode((yyvsp[-5].str)), (yyvsp[-3].str), (yyvsp[-1].no));}
+#line 2680 "y.tab.c"
+    break;
 
-#line 2678 "y.tab.c"
+
+#line 2684 "y.tab.c"
 
       default: break;
     }
@@ -2867,7 +2873,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 419 "control.y"
+#line 420 "control.y"
 
 
 int yyerror(char const *s)

@@ -286,6 +286,7 @@ Param : TypeName ID {$$ = makeParamNode($1, makeVariableNode($2));}
 
 LdeclBlock : DECL {inLocalDecl = 1; inParamList = 0;} LDeclList ENDDECL {$$ = $3;}
 	| DECL ENDDECL {$$ = NULL;}
+    | {$$ = NULL;}
 	;
 
 LDeclList : LDeclList LDecl {$$ = makeConnectNode($1,$2);}

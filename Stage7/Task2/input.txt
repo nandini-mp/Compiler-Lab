@@ -1,0 +1,42 @@
+class
+Person {
+decl
+    int age;
+    int setAge(int a);
+    int getAge();
+enddecl
+int setAge(int a) {
+decl
+enddecl
+begin
+    self.age = a;
+    return 1;
+end
+}
+int getAge() {
+decl
+enddecl
+begin
+    return self.age;
+end
+}
+}
+endclass
+
+decl
+    int n;
+    Person first;
+enddecl
+
+int main() {
+decl
+enddecl
+begin
+    n = initialize();
+    first = new(Person);
+    n = first.setAge(42);
+    n = first.getAge();
+    write(n);
+    return 0;
+end
+}

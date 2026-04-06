@@ -1,0 +1,81 @@
+class
+A {
+decl
+    int x;
+    int getX();
+    int setX(int val);
+    int printClass();
+enddecl
+int getX() {
+begin
+    return self.x;
+end
+}
+int setX(int val) {
+begin
+    self.x = val;
+    return 1;
+end
+}
+int printClass() {
+begin
+    write(1);
+    return 1;
+end
+}
+}
+B extends A {
+decl
+    int y;
+    int getY();
+    int setY(int val);
+    int printClass();
+enddecl
+int getY() {
+begin
+    return self.y;
+end
+}
+int setY(int val) {
+begin
+    self.y = val;
+    return 1;
+end
+}
+int printClass() {
+begin
+    write(2);
+    return 1;
+end
+}
+}
+endclass
+
+decl
+    A obj1;
+    A obj2;
+    int n;
+enddecl
+
+int main() {
+decl
+    int t;
+enddecl
+begin
+    n = initialize();
+
+    obj1 = new(A);
+    t = obj1.setX(10);
+    t = obj1.printClass();
+    t = obj1.getX();
+    write(t);
+
+    obj2 = new(B);
+    t = obj2.setX(20);
+    t = obj2.printClass();
+    t = obj2.getX();
+    write(t);
+
+    return 0;
+end
+}

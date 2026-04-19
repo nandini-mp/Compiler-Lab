@@ -326,7 +326,7 @@ Gsymbol* InstallClass(char* name, Ctable* ctype, int size)
     node->dimension  = NULL;
     node->numDim     = 0;
 
-    stackVal += 2;                 // word 0 = member field ptr, word 1 = VFT ptr
+    stackVal += 2;
 
     if (!SThead) { SThead = node; STtail = node; return node; }
     STtail->next = node;

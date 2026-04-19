@@ -1,81 +1,62 @@
 class
-A {
+A
+{
 decl
-    int x;
-    int getX();
-    int setX(int val);
-    int printClass();
+int i;
+int f0();
+int f1();
 enddecl
-int getX() {
-begin
-    return self.x;
-end
+int f0() {
+    decl enddecl
+    begin
+        self.i = 999;
+        write(self.i);
+        return 1;
+    end
 }
-int setX(int val) {
-begin
-    self.x = val;
-    return 1;
-end
-}
-int printClass() {
-begin
-    write(1);
-    return 1;
-end
+int f1() {
+    decl
+    enddecl
+    begin
+        write(1111);
+        return 1;
+    end
 }
 }
-B extends A {
+B extends A
+{
 decl
-    int y;
-    int getY();
-    int setY(int val);
-    int printClass();
+int f1();
 enddecl
-int getY() {
+int f1() {
+decl
+enddecl
 begin
-    return self.y;
-end
-}
-int setY(int val) {
-begin
-    self.y = val;
-    return 1;
-end
-}
-int printClass() {
-begin
-    write(2);
-    return 1;
+write(1111);
+self.i=1;
+write("In B F1");
+return 1;
 end
 }
 }
 endclass
-
 decl
-    A obj1;
-    A obj2;
-    int n;
+int n;
+A obj;
 enddecl
-
 int main() {
 decl
-    int t;
 enddecl
 begin
-    n = initialize();
-
-    obj1 = new(A);
-    t = obj1.setX(10);
-    t = obj1.printClass();
-    t = obj1.getX();
-    write(t);
-
-    obj2 = new(B);
-    t = obj2.setX(20);
-    t = obj2.printClass();
-    t = obj2.getX();
-    write(t);
-
-    return 0;
+n=initialize();
+read(n);
+if(n>0) then
+obj = new(A);
+write(obj.f0());
+else
+obj = new(B);
+endif;
+n = obj.f0();
+return 1;
 end
 }

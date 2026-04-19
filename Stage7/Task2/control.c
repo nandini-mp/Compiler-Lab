@@ -1703,8 +1703,6 @@ struct tnode* makeReturnNode(tnode* expr) {
     return node;
 }
 
-// Add these new functions:
-
 tnode* makeFieldAccessNode(tnode* var, char* fieldname) {
     // var is the variable/field being accessed
     // fieldname is the field we're accessing on it

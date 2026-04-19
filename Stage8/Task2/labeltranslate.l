@@ -21,8 +21,8 @@ main_label_header MAIN:\n
 
 %%
 
-(0\n{number}\n0\n0\n0\n0\n0\n0\n) { 
-    if(pass == 2) fprintf(translatedFile,"%s",yytext); 
+({number}\n{number}\n{number}\n{number}\n{number}\n{number}\n{number}\n{number}\n) {
+    if(pass == 2) fprintf(translatedFile,"%s",yytext);
 }
 
 {label_header} {
@@ -89,6 +89,15 @@ CALL[ ]{fn_label_value}\n {
         char l[64];
         sscanf(yytext, "CALL %s", l);
         fprintf(translatedFile, "CALL %d\n", addrForLabel(l));
+    }
+}
+
+MOV[ ]{reg},[ ]{fn_label_value}\n {
+    if (pass == 1) addr += 2;
+    else {
+        char r[10], l[64];
+        sscanf(yytext, "MOV %[^,], %s", r, l);
+        fprintf(translatedFile, "MOV %s, %d\n", r, addrForLabel(l));
     }
 }
 

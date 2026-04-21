@@ -825,11 +825,14 @@ int codeGen(tnode* root)
 		{
 			int addrReg;
 			if (root->left->nodetype == Narraccess)
-        		addrReg = genArrayAddress(root->left);
+				addrReg = genArrayAddress(root->left);
+			else if (root->left->nodetype == Nself)
+				addrReg = genSelfFieldAddress(root->left);
+			else if (root->left->nodetype == Nfield)
+				addrReg = genFieldAddress(root->left);
 			else
 				addrReg = genAddressOfVar(root->left);
 			genReadInstr(addrReg);
-			releaseRegister(addrReg);
 			return -1;
 		}
 		case Nwrite :
@@ -2227,7 +2230,6 @@ int genSelfFieldAddress(tnode* t) {
     }
     int offset = field->fieldIndex;
 
-    // FIX: Self is always at BP - 4 in the eXpOS Method Calling Convention
     // Self is at BP - (4 + number_of_params_of_current_method)
     int selfBinding = -(4 + currentFnParamCount);
     int baseReg = getFreeRegister();

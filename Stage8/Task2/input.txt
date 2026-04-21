@@ -2,62 +2,69 @@ class
 A
 {
 decl
-int i;
-int f0();
-int f1();
+    int l;
+    int b;
+    int dim();
+    int findArea();
 enddecl
-int f0() {
-decl
-int c;
-enddecl
-begin
-c = self.f1();
-write(self.i);
-return 1;
-end
+int dim() {
+    decl
+    enddecl
+    begin
+        write("Enter l");
+        read(self.l);
+        write("Enter b");
+        read(self.b);
+        return 1;
+    end
 }
-int f1() {
-decl
-enddecl
-begin
-self.i=0;
-write("In A F1");
-return 1;
-end
+int findArea() {
+    decl
+    enddecl
+    begin
+        return self.l*self.b;
+    end
 }
 }
 B extends A
 {
-decl
-int f1();
-enddecl
-int f1() {
-decl
-enddecl
-begin
-self.i=1;
-write("In B F1");
-return 1;
-end
-}
+    decl
+    int dim();
+    enddecl
+    int dim() {
+        decl
+        enddecl
+        begin
+            write("Enter s");
+            read(self.l);
+            self.b = self.l;
+            return 1;
+        end
+    }
 }
 endclass
+
 decl
-int n;
-A obj;
+    A obj;
 enddecl
+
 int main() {
-decl
-enddecl
-begin
-n=initialize();
-read(n);
-if(n>0) then
-obj = new(A);
-else
-obj = new(B);
-endif;
-n = obj.f0();
-return 1;
-end
+    decl
+        int n;
+    enddecl
+    begin
+        n=initialize();
+        write("1 for r, 2 for s");
+        read(n);
+        if(n==1) then
+            write("Going to create A");
+            obj = new(A);
+            write("A created");
+        else
+            obj = new(B);
+        endif;
+        n = obj.dim();
+        write(obj.findArea());
+        return 0;
+    end
 }

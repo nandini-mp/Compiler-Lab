@@ -105,7 +105,9 @@ extern int yydebug;
     NEW = 306,                     /* NEW  */
     DELETE = 307,                  /* DELETE  */
     SELF = 308,                    /* SELF  */
-    UNARY = 309                    /* UNARY  */
+    AND = 309,                     /* AND  */
+    OR = 310,                      /* OR  */
+    UNARY = 311                    /* UNARY  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -165,7 +167,9 @@ extern int yydebug;
 #define NEW 306
 #define DELETE 307
 #define SELF 308
-#define UNARY 309
+#define AND 309
+#define OR 310
+#define UNARY 311
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -176,7 +180,7 @@ union YYSTYPE
 	struct tnode *no;
 	char* str;
 
-#line 180 "y.tab.h"
+#line 184 "y.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

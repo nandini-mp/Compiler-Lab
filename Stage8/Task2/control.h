@@ -36,7 +36,7 @@ typedef struct tnode
 
 enum nodeTypes {
 	Nadd, Nsub, Nmul, Ndiv, Nassign, Nconnect, Nvar, Nconst, Nread, Nwrite, Nif, Nifelse, Ngt, Nlt, Nge, Nle, Nne, Neq, Nwhile, Nbreak, Ncontinue, Nrepeat, Ndowhile, Ndecl, Ntype, Nstr, Narr, Narraccess, Naddr, Nderef, Nmod, Nfdecl, Nfdef, Nparam, Nfcall, Nreturn, Nfield, Nalloc, Nfree, Ninitialize, Nself,
-    Nmethodcall, Nnew, Ndelete, Nclassdecl
+    Nmethodcall, Nnew, Ndelete, Nclassdecl, Nand, Nor
 };
 
 int getVariableIndex(tnode* root);

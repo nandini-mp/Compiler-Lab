@@ -1,70 +1,92 @@
 class
-A
-{
+Person{
 decl
-    int l;
-    int b;
-    int dim();
-    int findArea();
+str name;
+int age;
+int printDetails();
+str findName();
+int createPerson(str name, int age);
 enddecl
-int dim() {
-    decl
-    enddecl
-    begin
-        write("Enter l");
-        read(self.l);
-        write("Enter b");
-        read(self.b);
-        return 1;
-    end
+int printDetails(){
+decl
+enddecl
+begin
+write(self.name);
+write(self.age);
+return 1;
+end
 }
-int findArea() {
-    decl
-    enddecl
-    begin
-        return self.l*self.b;
-    end
+str findName(){
+decl
+enddecl
+begin
+return self.name;
+end
+}
+int createPerson(str name, int age){
+decl
+enddecl
+begin
+self.name=name;
+self.age=age;
+return 1;
+end
 }
 }
-B extends A
-{
-    decl
-    int dim();
-    enddecl
-    int dim() {
-        decl
-        enddecl
-        begin
-            write("Enter s");
-            read(self.l);
-            self.b = self.l;
-            return 1;
-        end
-    }
+Student extends Person{
+decl
+int rollnumber;
+str dept;
+int printDetails();
+int createStudent(str name, int age,int rollNo, str dept);
+enddecl
+int createStudent(str name, int age,int rollNo, str dept){
+decl
+enddecl
+begin
+self.name =name;
+self.age = age;
+self.rollnumber = rollNo;
+self.dept = dept;
+return 1;
+end
+}
+int printDetails(){
+decl
+enddecl
+begin
+write(self.name);
+write(self.age);
+write(self.rollnumber);
+write(self.dept);
+return 1;
+end
+}
 }
 endclass
-
 decl
-    A obj;
+int n,temp;
+str name;
+Person first;
+Student second;
+Person arbitrary;
 enddecl
-
-int main() {
-    decl
-        int n;
-    enddecl
-    begin
-        n=initialize();
-        write("1 for r, 2 for s");
-        read(n);
-        if(n==1) then
-            write("Going to create A");
-            obj = new(A);
-            write("A created");
-        else
-            obj = new(B);
-        endif;
-        n = obj.dim();
-        write(obj.findArea());
-        return 0;
-    end
+int main(){
+decl
+enddecl
+begin
+n = initialize();
+first=new(Person);
+temp = first.createPerson("Rogers", 37);
+second=new(Student);
+temp = second.createStudent("Mathew", 35, 999, "CS");
+read(n);
+if (n>0) then
+arbitrary = first;
+else
+arbitrary = second;
+endif;
+n = arbitrary.printDetails();
+return 0;
+end
 }

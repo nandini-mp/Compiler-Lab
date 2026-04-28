@@ -195,30 +195,36 @@ struct tnode* makeOperatorNode(char c, struct tnode *l, struct tnode *r)
     temp->left = l;
     temp->right = r;
     temp->type = 0;
+    temp->typeEntry = TLookup("int");
     temp->varname = NULL;
     return temp;
 }
-struct tnode* makeCOperatorNode(char c,struct tnode *l,struct tnode *r)
+
+struct tnode* makeCOperatorNode(char c, struct tnode *l, struct tnode *r)
 {
-	if (l->type!=0 || r->type!=0)
-	{
-		printf("Operand type not INT\n");
-		exit(1);
-	}
-	struct tnode *temp;
-	temp = (struct tnode*)malloc(sizeof(struct tnode));
-	temp->val = INT_MAX;
-	if (c=='<') temp->nodetype = Nlt;
-	else if (c=='>') temp->nodetype = Ngt;
-	else if (c=='L') temp->nodetype = Nle;
-	else if (c=='G') temp->nodetype = Nge;
-	else if (c=='N') temp->nodetype = Nne;
-	else temp->nodetype = Neq;
-	temp->varname = NULL;
-	temp->left = l;
-	temp->right = r;
-	temp->type = 1;
-	return temp;
+    // AND/OR operate on boolean operands (type=1), others need INT (type=0)
+    if (c != 'A' && c != 'O') {
+        if (l->type != 0 || r->type != 0) {
+            printf("Operand type not INT\n");
+            exit(1);
+        }
+    }
+    struct tnode *temp;
+    temp = (struct tnode*)malloc(sizeof(struct tnode));
+    temp->val = INT_MAX;
+    if (c=='<') temp->nodetype = Nlt;
+    else if (c=='>') temp->nodetype = Ngt;
+    else if (c=='L') temp->nodetype = Nle;
+    else if (c=='G') temp->nodetype = Nge;
+    else if (c=='N') temp->nodetype = Nne;
+    else if (c=='A') temp->nodetype = Nand;
+    else if (c=='O') temp->nodetype = Nor;
+    else temp->nodetype = Neq;
+    temp->varname = NULL;
+    temp->left = l;
+    temp->right = r;
+    temp->type = 1;  // boolean result
+    return temp;
 }
 
 struct tnode *makeConnectNode(tnode *l, tnode *r)
@@ -685,26 +691,27 @@ int genLoadVarInstr(tnode* root)
 
 int genConditionCode(tnode* root, int falseLabel)
 {
-	int left = codeGen(root->left);
-	int right = codeGen(root->right);
-	switch(root->nodetype)
-	{
-		case Nlt : fprintf(target_file,"LT R%d, R%d\n",left, right);
-					break;
-		case Ngt : fprintf(target_file,"GT R%d, R%d\n",left, right);
-					break;
-		case Nle : fprintf(target_file,"LE R%d, R%d\n",left, right);
-					break;
-		case Nge : fprintf(target_file,"GE R%d, R%d\n",left, right);
-					break;
-		case Nne : fprintf(target_file,"NE R%d, R%d\n",left, right);
-					break;
-		case Neq : fprintf(target_file,"EQ R%d, R%d\n",left, right);
-					break;
-	}
-	fprintf(target_file,"JZ R%d, L%d\n",left,falseLabel);
-	releaseRegister(right);
-	return left;
+    // AND/OR: evaluate the whole expression via codeGen, then JZ
+    if (root->nodetype == Nand || root->nodetype == Nor) {
+        int reg = codeGen(root);
+        fprintf(target_file, "JZ R%d, L%d\n", reg, falseLabel);
+        return reg;
+    }
+
+    int left = codeGen(root->left);
+    int right = codeGen(root->right);
+    switch(root->nodetype)
+    {
+        case Nlt : fprintf(target_file,"LT R%d, R%d\n",left, right); break;
+        case Ngt : fprintf(target_file,"GT R%d, R%d\n",left, right); break;
+        case Nle : fprintf(target_file,"LE R%d, R%d\n",left, right); break;
+        case Nge : fprintf(target_file,"GE R%d, R%d\n",left, right); break;
+        case Nne : fprintf(target_file,"NE R%d, R%d\n",left, right); break;
+        case Neq : fprintf(target_file,"EQ R%d, R%d\n",left, right); break;
+    }
+    fprintf(target_file,"JZ R%d, L%d\n",left,falseLabel);
+    releaseRegister(right);
+    return left;
 }
 
 void genIfElseCode(tnode* root)
@@ -803,6 +810,47 @@ int codeGen(tnode* root)
 			releaseRegister(r2);
 			return r3;
 		}
+		case Nand:
+		{
+			// A AND B = (A != 0) && (B != 0)
+			// Simplest: evaluate both, multiply (1*1=1, else 0)
+			int l = codeGen(root->left);
+			int r = codeGen(root->right);
+			fprintf(target_file, "MUL R%d, R%d\n", l, r);
+			releaseRegister(r);
+			return l;
+		}
+		case Nor:
+		{
+			// A OR B: if either nonzero, result is 1
+			int l = codeGen(root->left);
+			int r = codeGen(root->right);
+			fprintf(target_file, "ADD R%d, R%d\n", l, r);
+			// now l = l+r, if >0 means true; but we need 0 or 1
+			// simplest: just use the sum as boolean (nonzero = true)
+			releaseRegister(r);
+			return l;
+		}
+        case Nlt:
+        case Ngt:
+        case Nle:
+        case Nge:
+        case Nne:
+        case Neq:
+        {
+            int l = codeGen(root->left);
+            int r = codeGen(root->right);
+            switch(root->nodetype) {
+                case Nlt: fprintf(target_file, "LT R%d, R%d\n", l, r); break;
+                case Ngt: fprintf(target_file, "GT R%d, R%d\n", l, r); break;
+                case Nle: fprintf(target_file, "LE R%d, R%d\n", l, r); break;
+                case Nge: fprintf(target_file, "GE R%d, R%d\n", l, r); break;
+                case Nne: fprintf(target_file, "NE R%d, R%d\n", l, r); break;
+                case Neq: fprintf(target_file, "EQ R%d, R%d\n", l, r); break;
+            }
+            releaseRegister(r);
+            return l;  // l now holds 0 or 1
+        }
 		case Nassign : return genAssignInstr(root);
 		case Nconnect :
 		{
@@ -982,68 +1030,78 @@ int codeGen(tnode* root)
 			return -1;
 		}
 		case Nfcall:
-		{
-			Gsymbol* g = root->symbolTableEntry;
-			tnode* ap = root->right;
+        {
+            Gsymbol* g = root->symbolTableEntry;
+            tnode* ap = root->right;
 
-			// collect args — right-first then reverse (matches left-leaning ArgList tree)
-			tnode* args[64];
-			int ac = 0;
-			tnode* tmp = ap;
-			while (tmp) {
-				if (tmp->nodetype == Nconnect) {
-					args[ac++] = tmp->right;   // right = current arg at this level
-					tmp = tmp->left;           // left = earlier args
-				} else {
-					args[ac++] = tmp;
-					break;
-				}
-			}
-			// reverse to get correct order
-			for (int i = 0; i < ac/2; i++) {
-				tnode* s = args[i];
-				args[i] = args[ac-1-i];
-				args[ac-1-i] = s;
-			}
+            tnode* args[64];
+            int ac = 0;
+            tnode* tmp = ap;
+            while (tmp) {
+                if (tmp->nodetype == Nconnect) {
+                    args[ac++] = tmp->right;
+                    tmp = tmp->left;
+                } else {
+                    args[ac++] = tmp;
+                    break;
+                }
+            }
+            for (int i = 0; i < ac/2; i++) {
+                tnode* s = args[i];
+                args[i] = args[ac-1-i];
+                args[ac-1-i] = s;
+            }
 
-			// push args in order
-			// push args in REVERSE order so first arg lands at BP-3
-			for (int i = ac-1; i >= 0; i--) {
-				if (args[i]->nodetype == Nvar &&
-					args[i]->symbolTableEntry == NULL &&
-					args[i]->localSymbolTableEntry == NULL) {
-					args[i]->localSymbolTableEntry = LLookup(args[i]->varname);
-					if (args[i]->localSymbolTableEntry)
-						args[i]->localBinding = args[i]->localSymbolTableEntry->binding;
-					else
-						args[i]->symbolTableEntry = Lookup(args[i]->varname);
-				}
-				int r = codeGen(args[i]);
-				fprintf(target_file, "PUSH R%d\n", r);
-				releaseRegister(r);
-			}
+            // Save all in-use registers FIRST, before pushing args
+            int savedRegs[20];
+            int saveCount = 0;
+            for (int i = 0; i < 20; i++) {
+                if (!registers[i]) {
+                    savedRegs[saveCount++] = i;
+                    fprintf(target_file, "PUSH R%d\n", i);
+                }
+            }
 
-			// push empty return value slot
-			int retSlot = getFreeRegister();
-			fprintf(target_file, "PUSH R%d\n", retSlot);
-			releaseRegister(retSlot);
+            // push args in reverse order
+            for (int i = ac-1; i >= 0; i--) {
+                if (args[i]->nodetype == Nvar &&
+                    args[i]->symbolTableEntry == NULL &&
+                    args[i]->localSymbolTableEntry == NULL) {
+                    args[i]->localSymbolTableEntry = LLookup(args[i]->varname);
+                    if (args[i]->localSymbolTableEntry)
+                        args[i]->localBinding = args[i]->localSymbolTableEntry->binding;
+                    else
+                        args[i]->symbolTableEntry = Lookup(args[i]->varname);
+                }
+                int r = codeGen(args[i]);
+                fprintf(target_file, "PUSH R%d\n", r);
+                releaseRegister(r);
+            }
 
-			// call function
-			fprintf(target_file, "CALL F%d\n", g->flabel);
+            // push return value slot
+            int retSlot = getFreeRegister();
+            fprintf(target_file, "PUSH R%d\n", retSlot);
+            releaseRegister(retSlot);
 
-			// pop return value
-			int retReg = getFreeRegister();
-			fprintf(target_file, "POP R%d\n", retReg);
+            fprintf(target_file, "CALL F%d\n", g->flabel);
 
-			// pop arguments
-			int tmp2 = getFreeRegister();
-			for (int i = 0; i < ac; i++) {
-				fprintf(target_file, "POP R%d\n", tmp2);
-			}
-			releaseRegister(tmp2);
+            // pop return value
+            int retReg = getFreeRegister();
+            fprintf(target_file, "POP R%d\n", retReg);
 
-			return retReg;
-		}
+            // pop arguments
+            int tmp2 = getFreeRegister();
+            for (int i = 0; i < ac; i++)
+                fprintf(target_file, "POP R%d\n", tmp2);
+            releaseRegister(tmp2);
+
+            // restore saved registers in reverse order
+            for (int i = saveCount-1; i >= 0; i--) {
+                fprintf(target_file, "POP R%d\n", savedRegs[i]);
+            }
+
+            return retReg;
+        }
 		case Nfield:
 		{
 			int addrReg = genFieldAddress(root);
@@ -1059,30 +1117,17 @@ int codeGen(tnode* root)
 		case Nfdecl:
    			return -1;
 		case Nalloc:
-		{
-			int r1 = getFreeRegister();
-			int r2 = getFreeRegister();
-			int r3 = getFreeRegister();
-			int r4 = getFreeRegister();
-			int r5 = getFreeRegister();
-			fprintf(target_file, "MOV R%d, \"Alloc\"\n", r1);
-			fprintf(target_file, "PUSH R%d\n", r1);
-			fprintf(target_file, "MOV R%d, 8\n", r2);
-			fprintf(target_file, "PUSH R%d\n", r2);
-			fprintf(target_file, "PUSH R%d\n", r3);   // return value slot
-			fprintf(target_file, "PUSH R%d\n", r4);
-			fprintf(target_file, "PUSH R%d\n", r5);
-			fprintf(target_file, "CALL 0\n");
-			fprintf(target_file, "POP R%d\n", r5);
-			fprintf(target_file, "POP R%d\n", r4);
-			fprintf(target_file, "POP R%d\n", r3);    // r3 = allocated address
-			fprintf(target_file, "SUB SP, 2\n");
-			releaseRegister(r1);
-			releaseRegister(r2);
-			releaseRegister(r4);
-			releaseRegister(r5);
-			return r3;
-		}
+        {
+            // Bump allocator: same as Nnew
+            int r1 = getFreeRegister();
+            fprintf(target_file, "MOV R%d, [1024]\n", r1);
+            int r2 = getFreeRegister();
+            fprintf(target_file, "MOV R%d, R%d\n", r2, r1);
+            fprintf(target_file, "ADD R%d, 8\n", r1);
+            fprintf(target_file, "MOV [1024], R%d\n", r1);
+            releaseRegister(r1);
+            return r2;
+        }
 		case Nfree:
 		{
 			int addrReg = codeGen(root->left);  // gets heap ptr value
@@ -1163,92 +1208,106 @@ int codeGen(tnode* root)
 		}
 
 		case Nmethodcall:
-		{
-			// 1. Collect arguments
-			// Using your logic: args are in root->right, linked via Nconnect or direct
-			tnode* args[64];
-			int ac = 0;
-			tnode* tmp = root->right;
-			while (tmp) {
-				if (tmp->nodetype == Nconnect) { 
-					args[ac++] = tmp->right; 
-					tmp = tmp->left; 
-				} else { 
-					args[ac++] = tmp; 
-					break; 
-				}
-			}
-			// Reverse them to push in the correct order if your grammar requires it
-			for (int i = 0; i < ac/2; i++) {
-				tnode* s = args[i]; args[i] = args[ac-1-i]; args[ac-1-i] = s;
-			}
+        {
+            // 1. Collect arguments
+            tnode* args[64];
+            int ac = 0;
+            tnode* tmp = root->right;
+            while (tmp) {
+                if (tmp->nodetype == Nconnect) {
+                    args[ac++] = tmp->right;
+                    tmp = tmp->left;
+                } else {
+                    args[ac++] = tmp;
+                    break;
+                }
+            }
+            for (int i = 0; i < ac/2; i++) {
+                tnode* s = args[i]; args[i] = args[ac-1-i]; args[ac-1-i] = s;
+            }
 
-			// 2. Load Self (Heap Ptr) and VFT Ptr
-			int selfReg = getFreeRegister();
-			int vftReg  = getFreeRegister();
+            // 2. Save all in-use registers FIRST before anything else
+            int savedRegs[20];
+            int saveCount = 0;
+            for (int i = 0; i < 20; i++) {
+                if (!registers[i]) {
+                    savedRegs[saveCount++] = i;
+                    fprintf(target_file, "PUSH R%d\n", i);
+                }
+            }
 
-			if (root->left == NULL) {
-				// self.method() call inside a class method
-				// After Fix 2: self is at BP-(4+currentFnParamCount), vft at BP-(3+currentFnParamCount)
-				int selfOffset = -(4 + currentFnParamCount);
-				int vftOffset  = -(3 + currentFnParamCount);
+            // 3. Load Self (Heap Ptr) and VFT Ptr
+            int selfReg = getFreeRegister();
+            int vftReg  = getFreeRegister();
 
-				fprintf(target_file, "MOV R%d, BP\n", selfReg);
-				fprintf(target_file, "ADD R%d, %d\n", selfReg, selfOffset);
-				fprintf(target_file, "MOV R%d, [R%d]\n", selfReg, selfReg);
+            if (root->left == NULL) {
+                // self.method() call inside a class method
+                int selfOffset = -(4 + currentFnParamCount);
+                int vftOffset  = -(3 + currentFnParamCount);
 
-				fprintf(target_file, "MOV R%d, BP\n", vftReg);
-				fprintf(target_file, "ADD R%d, %d\n", vftReg, vftOffset);
-				fprintf(target_file, "MOV R%d, [R%d]\n", vftReg, vftReg);
-			} else {
-				// obj.method() call
-				int addrReg = genAddressOfVar(root->left);
-				fprintf(target_file, "MOV R%d, [R%d]\n", selfReg, addrReg); // Word 0: Heap
-				fprintf(target_file, "ADD R%d, 1\n", addrReg);
-				fprintf(target_file, "MOV R%d, [R%d]\n", vftReg, addrReg);  // Word 1: VFT
-				releaseRegister(addrReg);
-			}
+                fprintf(target_file, "MOV R%d, BP\n", selfReg);
+                fprintf(target_file, "ADD R%d, %d\n", selfReg, selfOffset);
+                fprintf(target_file, "MOV R%d, [R%d]\n", selfReg, selfReg);
 
-			/// 3. PUSH SEQUENCE
-			// A. Push Self and VFT FIRST (spec: self at BP-(3+ac), vft at BP-(2+ac) ... wait)
-			// Spec stack (bottom->top at call site): self_heap | vft | arg1..argN | retslot
-			fprintf(target_file, "PUSH R%d\n", selfReg);
-			releaseRegister(selfReg);
-			fprintf(target_file, "PUSH R%d\n", vftReg);
+                fprintf(target_file, "MOV R%d, BP\n", vftReg);
+                fprintf(target_file, "ADD R%d, %d\n", vftReg, vftOffset);
+                fprintf(target_file, "MOV R%d, [R%d]\n", vftReg, vftReg);
+            } else {
+                // obj.method() call
+                int addrReg = genAddressOfVar(root->left);
+                fprintf(target_file, "MOV R%d, [R%d]\n", selfReg, addrReg); // Word 0: Heap
+                fprintf(target_file, "ADD R%d, 1\n", addrReg);
+                fprintf(target_file, "MOV R%d, [R%d]\n", vftReg, addrReg);  // Word 1: VFT
+                releaseRegister(addrReg);
+            }
 
-			// B. Push Arguments
-			for (int i = 0; i < ac; i++) {
-				int r = codeGen(args[i]);
-				fprintf(target_file, "PUSH R%d\n", r);
-				releaseRegister(r);
-			}
+            // 4. Push sequence: self, VFT, args, retslot
+            fprintf(target_file, "PUSH R%d\n", selfReg);
+            releaseRegister(selfReg);
+            fprintf(target_file, "PUSH R%d\n", vftReg);
 
-			// C. Push Return Slot
-			int retSlot = getFreeRegister();
-			fprintf(target_file, "PUSH R%d\n", retSlot);
-			releaseRegister(retSlot);
-			// 4. Dynamic Dispatch
-			// Get method index from the class table
-			Cmethod* cm = CMLookup(root->classEntry, root->varname);
-			int methodIdx = cm ? cm->methodIndex : 0;
+            // Push arguments in reverse order
+            for (int i = ac-1; i >= 0; i--) {
+                int r = codeGen(args[i]);
+                fprintf(target_file, "PUSH R%d\n", r);
+                releaseRegister(r);
+            }
 
-			fprintf(target_file, "ADD R%d, %d\n", vftReg, methodIdx);
-			fprintf(target_file, "MOV R%d, [R%d]\n", vftReg, vftReg);
-			fprintf(target_file, "CALL R%d\n", vftReg);
-			releaseRegister(vftReg);
+            // Push return slot
+            int retSlot = getFreeRegister();
+            fprintf(target_file, "PUSH R%d\n", retSlot);
+            releaseRegister(retSlot);
 
-			// 5. Cleanup — pop in reverse push order: retslot, args, vft, self
-			int retReg = getFreeRegister();
-			int dummy = getFreeRegister();
-			fprintf(target_file, "POP R%d\n", retReg);   // pop return slot (result)
-			for (int i = 0; i < ac; i++)
-				fprintf(target_file, "POP R%d\n", dummy); // pop args
-			fprintf(target_file, "POP R%d\n", dummy);    // pop VFT
-			fprintf(target_file, "POP R%d\n", dummy);    // pop self
+            // 5. Dynamic dispatch
+            Cmethod* cm = CMLookup(root->classEntry, root->varname);
+            int methodIdx = cm ? cm->methodIndex : 0;
 
-			releaseRegister(dummy);
-			return retReg;
-		}
+            fprintf(target_file, "ADD R%d, %d\n", vftReg, methodIdx);
+            fprintf(target_file, "MOV R%d, [R%d]\n", vftReg, vftReg);
+            fprintf(target_file, "CALL R%d\n", vftReg);
+            releaseRegister(vftReg);
+
+            // 6. Pop return value
+            int retReg = getFreeRegister();
+            int dummy = getFreeRegister();
+            fprintf(target_file, "POP R%d\n", retReg);   // return value
+
+            // Pop args
+            for (int i = 0; i < ac; i++)
+                fprintf(target_file, "POP R%d\n", dummy);
+
+            // Pop VFT and self
+            fprintf(target_file, "POP R%d\n", dummy);    // VFT
+            fprintf(target_file, "POP R%d\n", dummy);    // self
+            releaseRegister(dummy);
+
+            // 7. Restore saved registers in reverse order
+            for (int i = saveCount-1; i >= 0; i--) {
+                fprintf(target_file, "POP R%d\n", savedRegs[i]);
+            }
+
+            return retReg;
+        }
 		case Nclassdecl: return -1;
 	}
 }
@@ -1854,9 +1913,10 @@ tnode* makeFreeNode(tnode* var) {
 
 Tfield* buildFieldList(tnode* root) {
     if (!root) return NULL;
-    if (root->nodetype == Nvar && root->typeEntry != NULL) {
-        // only build field for actual field declarations, not method decls
+    if (root->nodetype == Nvar && !root->isFunction) {
+        // only actual fields, not method declarations
         Tfield* f = createField(root->varname, root->typeEntry);
+        f->ctype = root->classEntry;
         return f;
     }
     if (root->nodetype == Nconnect) {
@@ -1869,40 +1929,38 @@ Tfield* buildFieldList(tnode* root) {
         temp->next = right;
         return left;
     }
-    return NULL;  // skip method decl nodes (Nfdecl)
+    return NULL;
 }
 
 int genFieldAddress(tnode* t) {
-    // t is an Nfield node
-    // t->left is the variable or another Nfield
-    // t->varname is the field name
-    
     int baseReg;
     if (t->left->nodetype == Nfield) {
-        // nested field: p.next.data
         baseReg = genFieldAddress(t->left);
-        // baseReg holds address of t->left field
-        // dereference it to get the struct pointer
         int ptrReg = getFreeRegister();
         fprintf(target_file, "MOV R%d, [R%d]\n", ptrReg, baseReg);
         releaseRegister(baseReg);
         baseReg = ptrReg;
+    } else if (t->left->nodetype == Nself) {
+        // self.fieldA.fieldB — first get address of self.fieldA
+        int addrReg = genSelfFieldAddress(t->left);
+        // addrReg = address of self.fieldA (a pointer to another struct)
+        // dereference to get the heap pointer
+        int ptrReg = getFreeRegister();
+        fprintf(target_file, "MOV R%d, [R%d]\n", ptrReg, addrReg);
+        releaseRegister(addrReg);
+        baseReg = ptrReg;
     } else {
-        // base case: variable
+        // base case: regular variable
         baseReg = genAddressOfVar(t->left);
-        // load the pointer value (since user-defined type vars hold heap address)
         int ptrReg = getFreeRegister();
         fprintf(target_file, "MOV R%d, [R%d]\n", ptrReg, baseReg);
         releaseRegister(baseReg);
         baseReg = ptrReg;
     }
-    
-    // Find field offset
+
     Ttable* varType = t->left->typeEntry;
     Tfield* field = FLookup(varType, t->varname);
     int offset = field->fieldIndex;
-    
-    // address of field = base + offset
     fprintf(target_file, "ADD R%d, %d\n", baseReg, offset);
     return baseReg;
 }
@@ -2007,6 +2065,7 @@ tnode* makeSelfFieldNode(char* fieldname) {
     node->paramlist             = NULL;
     node->body                  = NULL;
     node->ldeclblock            = NULL;
+    node->classEntry = field->ctype? field->ctype : current_class;
     return node;
 }
 

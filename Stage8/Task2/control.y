@@ -39,7 +39,7 @@
 %token AMPERSAND MOD RETURNN
 %token TYPE ENDTYPE ALLOC FREE NULLL MAIN
 %token INITIALIZE
-%token CLASS ENDCLASS EXTENDS NEW DELETE SELF
+%token CLASS ENDCLASS EXTENDS NEW DELETE SELF AND OR
 %left PLUS MINUS
 %left MUL DIV MOD
 %nonassoc LT GT LE GE NE EQ
@@ -157,6 +157,7 @@ ClassMethodDecl
           CAddMethod(current_class, m);
           ClearLST();   // ← must be here, resets paramBinding to -3
           $$ = makeVariableNode($2);
+          $$->isFunction = 1;
       }
     ;
 
@@ -220,6 +221,7 @@ FieldDecl : TypeName ID SEMICOLON {
                   }
                   /* store as NULL typeEntry — field is a class type */
                   $$->typeEntry = NULL;
+                  $$->classEntry = fc;
               }
             }
           ;
@@ -390,6 +392,16 @@ Stmt : InputStmt {$$ = $1;}
         { $$ = makeObjMethodCallNode(makeVariableUseNode($1), $3, NULL); }
     | ID '.' ID '(' ArgList ')' SEMICOLON
         { $$ = makeObjMethodCallNode(makeVariableUseNode($1), $3, $5); }
+    | SELF '.' ID '.' ID '(' ')' SEMICOLON
+        { $$ = makeObjMethodCallNode(makeSelfFieldNode($3), $5, NULL); }
+    | SELF '.' ID '.' ID '(' ArgList ')' SEMICOLON
+        { $$ = makeObjMethodCallNode(makeSelfFieldNode($3), $5, $7); }
+    | Field ASSIGN NEW '(' ID ')' SEMICOLON
+    {
+        tnode* lhs = $1;
+        tnode* rhs = makeNewNode($5);
+        $$ = makeAssignNode(lhs, rhs);
+    }
 	;
 
 InputStmt : READ'('ID')' SEMICOLON { $$ = makeReadNode(makeVariableUseNode($3)); }
@@ -451,6 +463,8 @@ expr : expr PLUS expr			{$$ = makeOperatorNode('+',$1,$3);}
      | expr GE expr         	{$$ = makeCOperatorNode('G',$1,$3);}
      | expr NE expr         	{$$ = makeCOperatorNode('N',$1,$3);}
      | expr EQ expr         	{$$ = makeCOperatorNode('E',$1,$3);}
+     | expr AND expr            {$$ = makeCOperatorNode('A', $1, $3);}
+     | expr OR expr             {$$ = makeCOperatorNode('O', $1, $3);}
 	 | ID'['expr']' 			{$$ = makeArrayAccessNode(makeVariableUseNode($1), $3);}
 	 | ID'['expr']''['expr']' 	{$$ = makeArrayAccessNode(makeVariableUseNode($1), makeConnectNode($3,$6));}
 	 | AMPERSAND ID				{$$ = makeAddrNode((tnode*)makeVariableUseNode($2));}
@@ -466,7 +480,15 @@ expr : expr PLUS expr			{$$ = makeOperatorNode('+',$1,$3);}
     | ID '.' ID '(' ')'
         { $$ = makeObjMethodCallNode(makeVariableUseNode($1), $3, NULL); }
     | ID '.' ID '(' ArgList ')' { $$ = makeObjMethodCallNode(makeVariableUseNode($1), $3, $5);}
-       
+    | SELF '.' ID '.' ID '(' ')'
+        { $$ = makeObjMethodCallNode(makeSelfFieldNode($3), $5, NULL); }
+    | SELF '.' ID '.' ID '(' ArgList ')'
+        { $$ = makeObjMethodCallNode(makeSelfFieldNode($3), $5, $7); }
+    | NEW '(' ID ')'
+    {
+        tnode* rhs = makeNewNode($3);
+        $$ = rhs;
+    }
 	;
 
 %%

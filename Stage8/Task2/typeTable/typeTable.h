@@ -3,6 +3,7 @@
 
 // Forward declaration
 struct Ttable;
+struct Ctable;
 
 // A single field in a user-defined type
 // e.g. for "bst { int a; bst left; bst right; }"
@@ -12,6 +13,7 @@ typedef struct Tfield {
     struct Ttable* type;  // pointer to type table entry of this field's type
     int fieldIndex;       // position: 0, 1, 2... (used for memory offset calculation)
     struct Tfield* next;
+    struct Ctable* ctype;
 } Tfield;
 
 // One entry in the type table

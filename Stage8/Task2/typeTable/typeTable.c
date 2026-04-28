@@ -71,6 +71,7 @@ Tfield* createField(char* name, Ttable* type) {
     f->name  = strdup(name);
     f->type  = type;
     f->next  = NULL;
+    f->ctype = NULL;
     return f;
 }
 
